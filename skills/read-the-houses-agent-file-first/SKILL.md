@@ -8,8 +8,9 @@ description: >
   A house that ships an AGENTS.md has told you exactly how it wants agent-assisted work
   done; ignoring it while following a generic rulebook is the fastest way to read as
   noise. This is the meta-skill that runs first, before the rest of the front-gate.
-  Trigger terms: AGENTS.md, CLAUDE.md, agent-instruction file, agent instructions,
-  house conventions, which rule wins, precedence.
+  Use when starting on any repo you don't own, before invoking any other skill here,
+  or when two rules conflict. Trigger terms: AGENTS.md, CLAUDE.md, agent-instruction
+  file, agent instructions, house conventions, which rule wins, precedence.
 scope: general
 principle: ../../PRINCIPLES.md
 ---

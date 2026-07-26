@@ -87,7 +87,7 @@ and on wrap-up:
 → PR #4632 opened on the nod; merged.
 
 **Credit-the-predecessor, live (JIRA SOLR-17707):** "Picked this up — PR #4639
-(supersedes the POC in #3273; [~janhoy], feel free to close it — credited in the
+(supersedes the POC in #3273; [~predecessor], feel free to close it — credited in the
 description)."
 
 **Cross-project (journal):** jetty #13569, assigned to the project lead but dormant

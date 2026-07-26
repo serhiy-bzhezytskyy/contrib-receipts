@@ -19,6 +19,8 @@ gate: skip or reorder when the work calls for it.
 |-------|-------|--------|---------|
 | [follow-the-thread](follow-the-thread/SKILL.md) | general | consolidate / offer-dont-grab | *SOURCING-receipt* — one Solr CI flake sourced 3 Jetty issues + 3 PRs: SOLR-17764 flake → jetty #15368/#15435 → (subsystem) #13569/#15472 → (adjacent) #13602/#15473. Verified via gh 2026-07-24, all OPEN/in-review. |
 | [consolidate-a-scattered-thread](consolidate-a-scattered-thread/SKILL.md) | general | offer-dont-grab | *SOURCING-receipt* — SOLR-17764, a Solr committer: "unclear where to further that conversation" → a 4-thread map (incidental flakiness→SOLR-18285; test-framework CCE→SOLR-18295; upstream→jetty#15368/#15435; SolrJ retry gap→SOLR-18188). |
+| [use-the-tool-for-its-purpose](use-the-tool-for-its-purpose/SKILL.md) | general | port-the-report-upstream / offer-dont-grab | *SOURCING-receipt* — one real N=5 benchmark campaign sourced 3 defects (2 blockers, one making the command unusable for everyone) → solr-orbit #55/#56/#57 + PRs #58/#59/#60. All in the gap between "it ran" and "you have a result"; 1099 green tests over a command that could not run once. Verified via gh 2026-07-25, all OPEN. |
+| [port-the-report-upstream](port-the-report-upstream/SKILL.md) | general | match-the-house-shape (in the 2nd house) | *SOURCING-receipt* — the same 3 defects proven inherited (aggregator.py byte-identical apart from imports, 295 lines each, both from origin/main) → OSB #1093/#1094/#1095 + PRs #1096/#1097/#1098, CI green incl. DCO. Re-verification caught 5 stale anchors (dispatch line 1186 vs 1215; `run` vs deprecated `execute-test`; per-repo autolinks, labels, DCO). Verified via gh 2026-07-25. |
 
 ## front-gate — obey the house before you touch anything
 
@@ -60,3 +62,20 @@ corrected, not frozen. Applications (wins and misfires) are logged in
 
 Where a receipt is a measured corpus correlation rather than a maintainer quote, the
 skill labels it as correlation-not-lever and names the confound.
+
+The claims this file and each skill make about their own shape are checked, not
+trusted: `bash tools/validate-skills.sh` enforces them — the uniform section order,
+`name` matching its directory, a description Claude can route on (a `Use when…`
+clause + `Trigger terms:`), both indexes listing every skill, resolving links,
+no maintainer handles in prose, English-only. Add `--online` to re-resolve every
+GitHub receipt link, so a receipt that goes dead fails a check instead of aging
+quietly. It runs as part of [`../tests/check-status-smoke.sh`](../tests/check-status-smoke.sh).
+
+Whether a skill actually *loads* is a separate question, and a separate test:
+[`../tests/routing-evals.sh`](../tests/routing-evals.sh) puts a real request to Claude
+in a clean directory holding only these skills, and checks which one fires. Claude
+routes on the `description` frontmatter alone, so a skill can pass every structural
+check and still never load — `port-the-report-upstream` did exactly that (0/3; see
+[`../LEDGER.md`](../LEDGER.md)). Opt-in (`RUNS=3 bash tests/routing-evals.sh`), since
+each case spawns a real session; a single miss is noise, a repeated one is a
+description to sharpen.

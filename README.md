@@ -42,6 +42,39 @@ Every skill file carries a `## Lifecycle` section (signals it worked, what to lo
 what it overlaps) and feeds [`LEDGER.md`](LEDGER.md) — the wrong-answers log, misfires kept next to the wins.
 The skills are meant to be lived in and corrected, not frozen.
 
+## Use it
+
+Each skill is a plain `SKILL.md` — Claude Code loads it from your skills directory and invokes it when the
+work matches its description. To install all of them:
+
+```bash
+git clone https://github.com/serhiy-bzhezytskyy/contrib-receipts.git
+mkdir -p ~/.claude/skills
+# every skill, for every project (each skill's own directory, not skills/README.md):
+find contrib-receipts/skills -mindepth 1 -maxdepth 1 -type d -exec cp -R {} ~/.claude/skills/ \;
+```
+
+Swap `~/.claude/skills` for `<your-project>/.claude/skills` to install into one project instead. Or copy a
+single skill if you'd rather start with one — they're independent, and each is one file:
+
+```bash
+cp -R contrib-receipts/skills/obey-the-houses-own-tooling ~/.claude/skills/
+```
+
+(No trailing slash on the source: `cp -R skills/foo/ dest/` copies the *contents* of `foo` on macOS, not the
+directory — which lands a bare `SKILL.md` in your skills dir and installs nothing.)
+
+Then work as usual in a repo you don't own; a skill loads when its moment arrives (or invoke one by name,
+e.g. `/verify-before-a-committer-comment`). Nothing here writes to a repo, opens a PR, or posts a comment on
+its own — the skills are checklists and gates for work you drive. They follow the
+[Agent Skills](https://agentskills.io) format, so the same files work in other tools that read it.
+
+Two runnable tools ship alongside: [`tools/check-status.sh`](tools/check-status.sh) (the whose-court sweep,
+the receipt behind `track-whose-court` — edit its arrays to your own PRs/issues first) and
+[`tools/house-shape.py`](tools/house-shape.py) (computes what a house actually merges). `bash
+tests/check-status-smoke.sh` checks both parse and that the skills still satisfy the invariants this repo
+claims about them, via [`tools/validate-skills.sh`](tools/validate-skills.sh).
+
 ## Two honest receipt classes
 
 Not every skill's value shows up as a merged diff. There are **two distinct, honest tiers of receipt** — kept
@@ -80,4 +113,4 @@ repo-specific vs broadly applicable is visible from the skill itself, not claime
 
 ## License
 
-MIT.
+MIT — see [`LICENSE`](LICENSE).

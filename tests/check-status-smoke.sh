@@ -64,6 +64,18 @@ else
   bad "house-shape.py missing"
 fi
 
+# 5. the skills themselves satisfy the invariants this repo promises about them
+VS="$HERE/../tools/validate-skills.sh"
+if [ -f "$VS" ]; then
+  if bash "$VS" >/tmp/vs_out 2>&1; then
+    pass "validate-skills.sh: all skill invariants hold"
+  else
+    bad "validate-skills.sh reported failures:"; grep '^FAIL' /tmp/vs_out | sed 's/^/       /'
+  fi
+else
+  bad "validate-skills.sh missing"
+fi
+
 echo "----"
 if [ "$fail" -eq 0 ]; then echo "PASS"; else echo "FAILED"; fi
 exit "$fail"

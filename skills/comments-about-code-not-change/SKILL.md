@@ -77,7 +77,7 @@ taste:**
 - **Jetty** — a maintainer's first review comment on PR #15435: "Please remove this
   comment as the git history should be all the context needed."
 - **OpenSearch** — #17140: an `advance()` comment shipped with "aligned per #17140…
-  confirmed by @msfroh"; it was the only issue#/@handle comment in the whole file
+  confirmed by @[maintainer]"; it was the only issue#/@handle comment in the whole file
   (zero precedent), rewritten to terse present-tense behavior.
 
 ## Lifecycle

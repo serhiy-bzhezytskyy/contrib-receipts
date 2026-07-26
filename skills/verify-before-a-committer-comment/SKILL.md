@@ -50,6 +50,12 @@ You're deciding whether a thread is even waiting on you (whose-turn), not assert
       explicitly ("still fails with CCE" ≠ "is caused by X") if unproven.
 - [ ] **Scope your own PR honestly** — "related symptom, different layer" beats
       overclaiming; committers see through overclaiming instantly.
+- [ ] **Check the PR body against its own diff, line by line, before posting.** Every
+      count ("N new tests"), every name, every "verified red without the fix" claim —
+      confirm against `git diff <base>...HEAD -- <path>`. A body written from what you
+      *intended* to do drifts from what the commit contains, and the diff is sitting
+      right next to the prose for the reviewer to compare. Where the diff is thinner
+      than the claim, **state the gap** rather than trimming the sentence and hoping.
 - [ ] State confidence: verified / inferred / open. Get ahead of "assumed or checked?".
 - [ ] **Adversarially re-read your own diff/comment before it ships** — with fresh
       context, as if it were a stranger's PR you were sent to poke holes in, not your
@@ -65,6 +71,7 @@ You're deciding whether a thread is even waiting on you (whose-turn), not assert
 | "The PR title / commit message says what it does." | The diff often contradicts the message; `git show` the actual change rather than inferring from titles or the link-graph. |
 | "It's obviously the root cause of this failure." | Match the stack trace or hedge explicitly — two similarly-named methods are usually different layers, and a confident-wrong claim about your own PR burns trust fast. |
 | "I skimmed my own diff, it looks fine." | Skimming your own work rubber-stamps it — you already believe it. Re-read cold, as a hostile reviewer, and make yourself name one problem; the flake-vs-deterministic flip on #4637 only surfaced because the first "it's a flake" read was challenged, not trusted. |
+| "I wrote the patch, so I know what the PR body should say." | You know what you *meant* to write. A drafted body for solr-orbit #58 claimed "five new tests" naming a `calculate_rsd` test; the diff had **two** and no such test. Caught by diffing before posting. The reviewer reads the prose beside the diff — a miscount there costs more trust than the missing test would have. |
 
 ## RECEIPT
 
@@ -92,6 +99,16 @@ fix for these flaky tests" was wrong on the layer — #4643 patches
 `CloudSolrClient.wasCommError`, not the `LBSolrClient` update-retry path the failing
 tests hit. Posting as drafted would have had a committer correcting Serhiy on his own
 PR; tracing the code path first turned it into an accurate, honestly-scoped claim.
+
+**Near-miss (apache/solr-orbit #58, 2026-07-25):** the drafted PR body claimed *"Five
+new tests… covering: all-null metrics, mixed…, null in the percentile branch,
+`calculate_rsd` with nulls, and unchanged behaviour."* Diffing the branch against
+`origin/main` before posting showed **two** tests and no `calculate_rsd` test at all.
+The posted body names the two that exist, states they were verified red by restoring
+main's `aggregator.py`, and discloses the gap in the open: *"The `calculate_rsd` site
+has no dedicated unit test here — it is covered by the end-to-end runs above… I can
+add a direct one if you'd prefer it in the suite."* Overclaiming your own test
+coverage is uniquely cheap for a reviewer to catch: the diff is on the same page.
 
 ## Lifecycle
 

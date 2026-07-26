@@ -13,6 +13,8 @@ signal that earns it; none ships without a receipt that it did.
 |---|---|
 | I found where the help actually was | [follow-the-thread](skills/follow-the-thread/SKILL.md) |
 | I handed back the map, not one more reply | [consolidate-a-scattered-thread](skills/consolidate-a-scattered-thread/SKILL.md) |
+| I hit this bug by using your tool, not by auditing your code | [use-the-tool-for-its-purpose](skills/use-the-tool-for-its-purpose/SKILL.md) |
+| I checked your copy of the code, not just the one I forked from | [port-the-report-upstream](skills/port-the-report-upstream/SKILL.md) |
 | I read the house's own agent file and let it override me | [read-the-houses-agent-file-first](skills/read-the-houses-agent-file-first/SKILL.md) |
 | I obeyed the house's own tooling | [obey-the-houses-own-tooling](skills/obey-the-houses-own-tooling/SKILL.md) |
 | I signed off the way this house requires | [sign-off-the-house-way](skills/sign-off-the-house-way/SKILL.md) |

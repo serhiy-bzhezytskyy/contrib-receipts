@@ -64,6 +64,33 @@ else
   bad "house-shape.py missing"
 fi
 
+# 4a. house-shape.py actually RUNS on both key conventions and computes the right numbers.
+#     "It compiles" was the whole check here before, which is how it shipped unable to read
+#     the `gh pr view --json` output its own docstring tells you to create: gh emits
+#     camelCase, the script read snake_case, so every PR failed the merged filter and it
+#     exited 1 with "No merged PRs found" on a corpus that was fine.
+FIX="$HERE/fixtures/house-shape"
+if [ -d "$FIX" ] && command -v python3 >/dev/null 2>&1; then
+  if hs_out=$(python3 "$HS" "$FIX" 2>&1); then
+    # 2 of the 3 fixtures are merged (one camelCase, one snake_case); the third is OPEN
+    # and must be excluded. Medians over adds 55/9, dels 1/3, files 2/6.
+    hs_fail=0
+    check_line(){ printf '%s\n' "$hs_out" | grep -q "$1" || { bad "house-shape.py: expected '$1' in output"; hs_fail=1; }; }
+    check_line "MERGED PRs in corpus: 2"
+    check_line "median additions:  +32"
+    check_line "median deletions:  -2"
+    check_line "median changed_files: 4"
+    check_line "test-file-touch rate: 50.0%"
+    check_line "title starts with a tracker key: 50.0%"
+    check_line "median days-to-merge: 3.0"
+    [ "$hs_fail" -eq 0 ] && pass "house-shape.py runs on both gh camelCase and REST snake_case fixtures"
+  else
+    bad "house-shape.py failed on tests/fixtures/house-shape:"; printf '%s\n' "$hs_out" | sed 's/^/       /'
+  fi
+else
+  printf 'skip - house-shape fixtures or python3 missing\n'
+fi
+
 # 4b. the inline `python3 -c '...'` snippets compile too (the heredoc check above only
 #     sees <<'PYEOF' blocks, so a syntax error in a -c snippet would ship silently)
 if command -v python3 >/dev/null 2>&1; then

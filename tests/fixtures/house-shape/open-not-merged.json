@@ -1,0 +1,11 @@
+{
+  "number": 4643,
+  "title": "SOLR-17764: still open, must be excluded from the merged medians",
+  "additions": 999,
+  "deletions": 999,
+  "changedFiles": 99,
+  "createdAt": "2026-07-20T00:00:00Z",
+  "mergedAt": null,
+  "state": "OPEN",
+  "files": [{"path": "solr/core/src/java/Bar.java"}]
+}

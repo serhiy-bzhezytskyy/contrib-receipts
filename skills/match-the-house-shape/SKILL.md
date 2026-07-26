@@ -66,8 +66,8 @@ For *when* to talk to maintainers before coding, that is discuss-in-issue-first;
 ## RECEIPT
 
 **Corpus measurement (local mirror of apache/solr PRs; observational).** Computed
-over **3,510 MERGED apache/solr PRs** by [`tools/house-shape.py`](../../tools/house-shape.py)
-(reproducible — point it at a PR-JSON mirror), the median shape of what merges:
+over **3,510 MERGED apache/solr PRs** by [`tools/house-shape.py`](../../tools/house-shape.py),
+the median shape of what merges:
 
 | axis | value |
 |---|---|
@@ -80,6 +80,13 @@ over **3,510 MERGED apache/solr PRs** by [`tools/house-shape.py`](../../tools/ho
 
 Churn distribution: ≤10 LOC — 815 PRs; 11–50 — 843; 51–200 — 871; 201–1000 — 716;
 1000+ — 265.
+
+**Reproduce it yourself** — the mirror command is in the tool's docstring, and its output
+feeds the tool directly (both `gh`'s camelCase and the REST API's snake_case are read).
+Run it against any house to get that house's numbers instead of Solr's; the corpus isn't
+shipped because it's large and repo-specific. Don't take the table above on faith — a
+12-PR slice of recent Solr merges lands at +54/−6, 5 files, 58.3% JIRA-key titles, 3.2 d,
+so a small sample reads noisier but in the same place.
 
 **Honesty labels (this is a correlation, not a proven lever):**
 - **Shape of what merged.** This describes the shape the house actually merges; it is

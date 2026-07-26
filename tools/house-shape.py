@@ -2,10 +2,13 @@
 """Compute the "house shape" of a repo from a local mirror of its PR JSON.
 
 This is the receipt behind the match-the-house-shape skill: rather than assert what
-a house merges, it computes it. Point it at a directory of PR JSON files (one per PR,
-each with a top-level `pr` object carrying additions/deletions/changed_files/title/
-created_at/merged_at, and an optional top-level `files` list of {filename}) and it
-prints the median shape of the MERGED subset.
+a house merges, it computes it. Point it at a directory of PR JSON files (one per PR)
+and it prints the median shape of the MERGED subset.
+
+Each file is either a flat PR object or `{"pr": {...}}`, carrying additions, deletions,
+changed files, title, and created/merged timestamps. Both key conventions work — the
+camelCase `gh pr view --json` emits (`mergedAt`, `changedFiles`, `files[].path`) and the
+snake_case of the REST API (`merged_at`, `changed_files`, `files[].filename`).
 
 The corpus itself is not shipped (it's large and repo-specific). To reproduce the
 numbers in the skill's RECEIPT, mirror the PRs first, e.g. with the GitHub CLI:
@@ -26,6 +29,23 @@ from collections import Counter
 from datetime import datetime
 
 
+def pick(obj, *names):
+    """First present, non-None value among `names`.
+
+    Two key conventions reach this script and both must work: `gh pr view --json`
+    emits camelCase (`mergedAt`, `changedFiles`, and `path` inside `files`), while the
+    REST API and hand-built mirrors use snake_case (`merged_at`, `changed_files`,
+    `filename`). Reading only one of them silently drops every PR — the corpus reduces
+    to zero and the script reports "No merged PRs found", which reads like a bad path
+    rather than a key mismatch.
+    """
+    for n in names:
+        v = obj.get(n)
+        if v is not None:
+            return v
+    return None
+
+
 def load_merged(corpus_dir):
     merged = []
     for fp in glob.glob(f"{corpus_dir}/*.json"):
@@ -34,19 +54,25 @@ def load_merged(corpus_dir):
         except Exception:
             continue
         pr = d.get("pr", d)  # accept {pr:{...}} or a flat PR object
-        if not isinstance(pr, dict) or not pr.get("merged_at"):
+        if not isinstance(pr, dict) or not pick(pr, "merged_at", "mergedAt"):
             continue
-        adds, dels, cf = pr.get("additions"), pr.get("deletions"), pr.get("changed_files")
+        adds = pick(pr, "additions")
+        dels = pick(pr, "deletions")
+        cf = pick(pr, "changed_files", "changedFiles")
         if adds is None or dels is None or cf is None:
             continue
-        fnames = [x.get("filename", "") for x in d.get("files", []) if isinstance(x, dict)]
+        # `files` sits beside the PR object in a {pr:{...}} mirror, inside it in gh output.
+        files = pick(d, "files") or pick(pr, "files") or []
+        fnames = [pick(x, "filename", "path") or "" for x in files if isinstance(x, dict)]
         test_touch = any("test" in fn.lower() for fn in fnames) if fnames else None
-        title = pr.get("title", "") or ""
+        title = pick(pr, "title") or ""
         has_key = bool(re.match(r"\s*[A-Z]+-\d+", title))
         ttm = None
         try:
-            c = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
-            m = datetime.fromisoformat(pr["merged_at"].replace("Z", "+00:00"))
+            c = datetime.fromisoformat(
+                pick(pr, "created_at", "createdAt").replace("Z", "+00:00"))
+            m = datetime.fromisoformat(
+                pick(pr, "merged_at", "mergedAt").replace("Z", "+00:00"))
             ttm = (m - c).total_seconds() / 86400.0
         except Exception:
             pass

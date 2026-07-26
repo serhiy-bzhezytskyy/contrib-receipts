@@ -1,0 +1,14 @@
+{
+  "number": 4632,
+  "title": "SOLR-3284: let ConcurrentUpdateSolrClient report which request failed",
+  "additions": 55,
+  "deletions": 1,
+  "changedFiles": 2,
+  "createdAt": "2026-07-10T09:00:00Z",
+  "mergedAt": "2026-07-14T09:00:00Z",
+  "state": "MERGED",
+  "files": [
+    {"path": "solr/core/src/java/org/apache/solr/Foo.java", "additions": 30, "deletions": 1},
+    {"path": "solr/core/src/test/org/apache/solr/FooTest.java", "additions": 25, "deletions": 0}
+  ]
+}

@@ -70,6 +70,11 @@ CASES=(
   # its prompt index and so must front-load; Claude Code does not appear to).
   "scattered-thread|consolidate-a-scattered-thread|A committer just said he isn't sure where this discussion should even continue — it's spread over a pile of tickets and a mailing list thread. What should I send back?"
 
+  # Packaging a cluster. Competes with match-the-house-shape, which also owns "split
+  # the PR" — but that one is about SIZE vs the house median, this one about one
+  # issue per PR when fixes are independent.
+  "package-cluster|one-fix-one-pr-then-coordinate|My one branch ended up fixing three different filed bugs, all in the same two files. How should I actually open this?"
+
   # Whose-turn, not a factual claim — the other side of the trio boundary.
   "whose-turn|track-whose-court|It's been quiet on everything I've got open. Is anyone waiting on me, or am I waiting on them?"
 )

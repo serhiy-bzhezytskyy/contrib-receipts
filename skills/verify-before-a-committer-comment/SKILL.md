@@ -56,6 +56,10 @@ You're deciding whether a thread is even waiting on you (whose-turn), not assert
       *intended* to do drifts from what the commit contains, and the diff is sitting
       right next to the prose for the reviewer to compare. Where the diff is thinner
       than the claim, **state the gap** rather than trimming the sentence and hoping.
+- [ ] **Answer an inline review comment IN ITS THREAD**, not as a top-level PR comment.
+      A detached reply leaves the reviewer's question looking unanswered on the review
+      even when you answered it — `gh api repos/<r>/pulls/<n>/comments/<comment-id>/replies`
+      (get the id from `gh api repos/<r>/pulls/<n>/comments`), not `gh pr comment`.
 - [ ] State confidence: verified / inferred / open. Get ahead of "assumed or checked?".
 - [ ] **Adversarially re-read your own diff/comment before it ships** — with fresh
       context, as if it were a stranger's PR you were sent to poke holes in, not your
@@ -71,6 +75,7 @@ You're deciding whether a thread is even waiting on you (whose-turn), not assert
 | "The PR title / commit message says what it does." | The diff often contradicts the message; `git show` the actual change rather than inferring from titles or the link-graph. |
 | "It's obviously the root cause of this failure." | Match the stack trace or hedge explicitly — two similarly-named methods are usually different layers, and a confident-wrong claim about your own PR burns trust fast. |
 | "I skimmed my own diff, it looks fine." | Skimming your own work rubber-stamps it — you already believe it. Re-read cold, as a hostile reviewer, and make yourself name one problem; the flake-vs-deterministic flip on #4637 only surfaced because the first "it's a flake" read was challenged, not trusted. |
+| "I answered their question — where the comment sits doesn't matter." | It does: an inline question answered at top level still reads as unanswered in the review. On luceneutil #600 an inline `src/build.gradle:4` question got a top-level reply; the reviewer read it and merged, but his comment sits orphaned from the answer. Reply in the thread. |
 | "I wrote the patch, so I know what the PR body should say." | You know what you *meant* to write. A drafted body for solr-orbit #58 claimed "five new tests" naming a `calculate_rsd` test; the diff had **two** and no such test. Caught by diffing before posting. The reviewer reads the prose beside the diff — a miscount there costs more trust than the missing test would have. |
 
 ## RECEIPT

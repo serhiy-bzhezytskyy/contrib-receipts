@@ -42,6 +42,7 @@ gate: skip or reorder when the work calls for it.
 
 | skill | scope | → next | receipt |
 |-------|-------|--------|---------|
+| [one-fix-one-pr-then-coordinate](one-fix-one-pr-then-coordinate/SKILL.md) | general | write-in-your-own-voice | *SOURCING-receipt* — two clusters packaged one-issue-per-PR: jetty #13569/#13602 split out of ONE branch of 5 mixed commits → PRs #15472/#15473, each 1 commit, hub comment on the neutral root issue #15368 with the contested PR's cross-link held; and solr-orbit #58/#59/#60 + OSB #1096/#1097/#1098, 6 PRs, 1 commit each, numbering kept parallel. Verified via gh 2026-07-26. |
 | [write-in-your-own-voice](write-in-your-own-voice/SKILL.md) | general | comments-about-code-not-change | a Solr committer, apache/solr #4632, on generated prose: "isn't useful in the delivered documentation… AI loves to do this"; the twin — a house-voice changelog drew "the best changelog entry I've seen in a long time." |
 | [comments-about-code-not-change](comments-about-code-not-change/SKILL.md) | general | verify-before-a-committer-comment | a Solr committer, apache/solr #4632: "isn't useful in the delivered documentation… AI loves to do this." (+ a Jetty maintainer, #15435; OpenSearch #17140) |
 | [no-force-push-a-reviewed-pr](no-force-push-a-reviewed-pr/SKILL.md) | general | verify-before-a-committer-comment | a Solr committer, apache/solr #4632: "Please don't force-push to PRs… It resets the GH review state for the reviewer." |

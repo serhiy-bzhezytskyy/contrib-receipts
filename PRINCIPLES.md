@@ -21,6 +21,7 @@ signal that earns it; none ships without a receipt that it did.
 | I shaped the PR like what actually merges here | [match-the-house-shape](skills/match-the-house-shape/SKILL.md) |
 | I didn't grab owned work | [offer-dont-grab](skills/offer-dont-grab/SKILL.md) |
 | I moved faster by discussing first | [discuss-in-issue-first](skills/discuss-in-issue-first/SKILL.md) |
+| Each PR does one thing, and the cluster is navigable | [one-fix-one-pr-then-coordinate](skills/one-fix-one-pr-then-coordinate/SKILL.md) |
 | The words are mine, not an LLM's | [write-in-your-own-voice](skills/write-in-your-own-voice/SKILL.md) |
 | My comments explain the code, not the change | [comments-about-code-not-change](skills/comments-about-code-not-change/SKILL.md) |
 | I didn't rewrite reviewers' anchors | [no-force-push-a-reviewed-pr](skills/no-force-push-a-reviewed-pr/SKILL.md) |

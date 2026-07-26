@@ -132,12 +132,52 @@ for index in ("skills/README.md", "PRINCIPLES.md"):
     else:
         ok("%s lists all %d skills" % (index, len(skill_dirs)))
 
+# --- the inventory's DERIVED cells must match their source ---
+# The `receipt` and `→ next` prose is hand-written and belongs in the table, not in
+# frontmatter — so this does not generate the table. It checks only the cells that
+# have a source of truth elsewhere and can therefore drift silently: `scope`, which
+# is duplicated from each skill's frontmatter, and the skill names in `→ next`,
+# which must be skills that exist.
+inv = "skills/README.md"
+if os.path.isfile(inv):
+    slugs = {os.path.basename(d) for d in skill_dirs}
+    drift = []
+    rows = re.findall(r"^\| \[([a-z][a-z-]*)\]\(([^)]+)\) \| ([^|]+) \| ([^|]+) \|",
+                      open(inv, encoding="utf-8").read(), re.M)
+    listed = {r[0] for r in rows}
+    for slug, link, scope_cell, next_cell in rows:
+        if slug not in slugs:
+            drift.append("%s: row for a skill that does not exist" % slug)
+            continue
+        fm_src = open("skills/%s/SKILL.md" % slug, encoding="utf-8").read()
+        fm_scope = re.search(r"^scope:\s*(\S+)", fm_src, re.M)
+        if fm_scope and fm_scope.group(1) != scope_cell.strip():
+            drift.append('%s: scope cell "%s" != frontmatter "%s"'
+                         % (slug, scope_cell.strip(), fm_scope.group(1)))
+        # hyphenated tokens in `→ next` are skill names; prose like "(in the 2nd
+        # house)" or "(loop: LEDGER)" is not, so only check hyphenated candidates.
+        for tok in re.findall(r"[a-z][a-z-]{4,}", next_cell):
+            if "-" in tok and tok not in slugs:
+                drift.append('%s: → next names "%s", which is not a skill' % (slug, tok))
+    for s in sorted(slugs - listed):
+        drift.append("%s: has no row in the inventory table" % s)
+    if drift:
+        for d_ in drift:
+            bad("%s: %s" % (inv, d_))
+    else:
+        ok("%s: every row's scope and → next matches its source" % inv)
+
 # --- every relative link resolves (receipts are the product; dead links are not) ---
 broken = []
 for f in glob.glob("*.md") + glob.glob("skills/**/*.md", recursive=True):
     base = os.path.dirname(f)
     for m in re.finditer(r"\[([^\]]+)\]\(([^)]+)\)", open(f, encoding="utf-8").read()):
         tgt = m.group(2)
+        # `../../issues/new?...`, `../../blob/main/...` — GitHub repo-relative URLs
+        # that GitHub resolves as routes, not paths on disk. Matched narrowly by route
+        # segment so that real relative paths (`../../LEDGER.md`) stay checked.
+        if re.match(r"\.\./\.\./(issues|pulls?|blob|tree|wiki|compare|commits?)(/|$)", tgt):
+            continue
         if tgt.startswith(("http://", "https://", "#", "mailto:")):
             continue
         p = os.path.normpath(os.path.join(base, tgt.split("#")[0]))

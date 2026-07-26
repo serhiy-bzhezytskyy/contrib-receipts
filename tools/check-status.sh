@@ -15,6 +15,31 @@ ME_JIRA="Serhiy Bzhezytskyy"     # JIRA display name (to detect if the LAST comm
 # exactly the case a GitHub-only view is blind to. Override the path with CONTRIB_LOG=...
 LOG="${CONTRIB_LOG:-$HOME/.contrib-receipts/status-log.tsv}"
 
+# The TSV above records HOW MUCH; this records WHY — one JSON object per item per run
+# (which item, which channel decided it, who moved last, the verdict). The counts alone
+# can't answer "which thread was it, and what made me think the ball was mine?", which is
+# exactly what a LEDGER entry needs weeks later, when it is being written from memory.
+# One line per decision, append-only, outside the repo. Override with CONTRIB_DECISIONS=...
+DECISIONS="${CONTRIB_DECISIONS:-$HOME/.contrib-receipts/decisions.jsonl}"
+mkdir -p "$(dirname "$DECISIONS")"
+RUN_TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+# decide <channel> <item> <verdict> <last_mover> [note]
+# Kept deliberately dumb: no jq dependency, values are plain identifiers/logins, and
+# anything free-text is passed through python for escaping.
+decide() {
+  RUN_TS="$RUN_TS" CH="$1" IT="$2" V="$3" WHO="${4:-}" NOTE="${5:-}" python3 -c '
+import json, os
+print(json.dumps({
+    "ts":      os.environ["RUN_TS"],
+    "channel": os.environ["CH"],
+    "item":    os.environ["IT"],
+    "verdict": os.environ["V"],
+    "last":    os.environ["WHO"] or None,
+    "note":    os.environ["NOTE"] or None,
+}, ensure_ascii=False))' >> "$DECISIONS"
+}
+
 # --- GitHub PRs: repo:number ---
 # KEEP THIS LIST CURRENT: add every PR the moment it's opened, or "check status" silently skips it
 # (the #600 comment on 2026-07-21 was missed because #600 wasn't listed here).
@@ -52,9 +77,11 @@ for item in "${GH_PRS[@]}"; do
   last=$(echo "$rows" | tail -1)
   lastwho=$(echo "$last" | cut -f2)
   ball="⚪ maintainer"
-  [ -z "$rows" ] && ball="⚪ maintainer (no comments yet)"
-  [ -n "$lastwho" ] && [ "$lastwho" != "$ME" ] && { ball="🔴 YOU (last: $lastwho)"; BALL_ON_YOU_GH=$((BALL_ON_YOU_GH+1)); }
+  verdict="them"
+  [ -z "$rows" ] && ball="⚪ maintainer (no comments yet)" && verdict="them-no-comments"
+  [ -n "$lastwho" ] && [ "$lastwho" != "$ME" ] && { ball="🔴 YOU (last: $lastwho)"; verdict="you"; BALL_ON_YOU_GH=$((BALL_ON_YOU_GH+1)); }
   ITEMS=$((ITEMS+1))
+  decide github-pr "$repo#$n" "$verdict" "$lastwho" "$state"
   printf "PR %s#%s  [%s]  %s\n" "$repo" "$n" "$state" "$ball"
   [ -n "$rows" ] && echo "$rows" | tail -3 | sed 's/^/    /'
 done
@@ -66,8 +93,10 @@ for item in "${GH_ISSUES[@]}"; do
   repo="${item%%:*}"; n="${item##*:}"
   rows=$(gh api "repos/$repo/issues/$n/comments" --jq '.[] | "\(.created_at)\t\(.user.login)"' 2>/dev/null | sort)
   last=$(echo "$rows" | tail -1); lastwho=$(echo "$last" | cut -f2)
-  ball="⚪ them"; [ -n "$lastwho" ] && [ "$lastwho" != "$ME" ] && ball="🟡 last: $lastwho"
+  ball="⚪ them"; verdict="them"
+  [ -n "$lastwho" ] && [ "$lastwho" != "$ME" ] && { ball="🟡 last: $lastwho"; verdict="watch"; }
   ITEMS=$((ITEMS+1))
+  decide github-issue "$repo#$n" "$verdict" "$lastwho" ""
   printf "ISSUE %s#%s  %s\n" "$repo" "$n" "$ball"
   echo "$rows" | tail -2 | sed 's/^/    /'
 done
@@ -105,7 +134,14 @@ for j in "${JIRAS[@]}"; do
   echo "$out"
   ITEMS=$((ITEMS+1))
   # a "YOU -> reply" on JIRA is a ball-on-you decided by a channel GitHub can't see = cross-tracker signal
-  echo "$out" | grep -q "YOU -> reply" && BALL_ON_YOU_XTR=$((BALL_ON_YOU_XTR+1))
+  if echo "$out" | grep -q "YOU -> reply"; then
+    BALL_ON_YOU_XTR=$((BALL_ON_YOU_XTR+1))
+    # the cross-tracker case is the one worth a record: a GitHub-only view is blind to it
+    decide asf-jira "$j" "you-cross-tracker" \
+      "$(echo "$out" | sed -n 's/.*last: \([^)]*\)).*/\1/p')" "invisible to a GitHub-only sweep"
+  else
+    decide asf-jira "$j" "them" "" ""
+  fi
 done
 rm -f "$JIRA_PY"
 
@@ -151,4 +187,7 @@ mkdir -p "$(dirname "$LOG")"
 printf '%s\t%d\t%d\t%d\t%d\n' "$TS" "$CHANNELS" "$ITEMS" "$BALL_ON_YOU_GH" "$BALL_ON_YOU_XTR" >> "$LOG"
 echo "### run logged → $LOG"
 echo "    channels=$CHANNELS items=$ITEMS ball-on-you: github=$BALL_ON_YOU_GH cross-tracker=$BALL_ON_YOU_XTR"
+echo "### per-item decisions → $DECISIONS ($(grep -c . "$DECISIONS" 2>/dev/null || echo 0) total)"
+echo "    a LEDGER entry weeks from now is written from these, not from memory:"
+echo "    jq -r 'select(.ts==\"$RUN_TS\" and (.verdict|startswith(\"you\"))) | \"\(.channel) \(.item) last=\(.last)\"' $DECISIONS"
 [ "$BALL_ON_YOU_XTR" -gt 0 ] && echo "    ↳ $BALL_ON_YOU_XTR reply(ies) owed on a channel GitHub-alone can't see — the whole reason this sweep exists."

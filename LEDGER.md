@@ -13,6 +13,12 @@ contributions is a candidate for retirement.
 
 Format: date | skill | context (repo/PR) | outcome (worked / misfired / stale) | what changed.
 
+Every entry below is the author's own application, which caps what this log can learn: one person's
+houses, one person's blind spots. If you ran a skill against a real repo — especially if it misfired,
+or never fired at all — the **[I tried it](../../issues/new?template=i-tried-it.yml)** issue template
+feeds this table from outside it. A misfire from a house I've never contributed to is worth more here
+than another win from one I have.
+
 ## Entries
 
 | date | skill | context (repo/PR) | outcome | what changed |
@@ -49,6 +55,15 @@ Columns: date | skill | hops | artifacts re-read | trackers crossed | note.
 `~/.contrib-receipts/status-log.tsv`, so the cross-channel sweep's cost accrues without manual
 bookkeeping. The `cross_tracker` count is the one that matters: a reply owed on a channel a
 GitHub-only view can't see.
+
+The counts answer *how much*; they can't answer *which thread, and what decided it* — which is
+what an entry above actually needs, written weeks later. So the same run also appends one JSON
+record per item to `~/.contrib-receipts/decisions.jsonl`
+(`ts | channel | item | verdict | last | note`), e.g.
+`{"channel":"asf-jira","item":"SOLR-3284","verdict":"you-cross-tracker","note":"invisible to a
+GitHub-only sweep"}`. A row in this table is then assembled from records rather than recalled —
+the same discipline the skills demand of a PR body. Both files live outside the repo: the
+records carry real maintainer names and are private working notes, never publishable.
 
 ## Notes
 

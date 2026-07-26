@@ -64,6 +64,27 @@ else
   bad "house-shape.py missing"
 fi
 
+# 4b. the inline `python3 -c '...'` snippets compile too (the heredoc check above only
+#     sees <<'PYEOF' blocks, so a syntax error in a -c snippet would ship silently)
+if command -v python3 >/dev/null 2>&1; then
+  if python3 - "$SCRIPT" <<'PYCHECK'
+import re, sys, ast
+src = open(sys.argv[1]).read()
+snippets = re.findall(r"python3 -c '(.*?)'", src, re.DOTALL)
+if not snippets:
+    print("ok   - no inline python3 -c snippets to check"); sys.exit(0)
+rc = 0
+for i, s in enumerate(snippets, 1):
+    try:
+        ast.parse(s)
+        print("ok   - inline python3 -c snippet #%d parses" % i)
+    except SyntaxError as e:
+        print("FAIL - inline python3 -c snippet #%d: %s" % (i, e)); rc = 1
+sys.exit(rc)
+PYCHECK
+  then :; else bad "inline python3 -c snippet check failed"; fi
+fi
+
 # 5. the skills themselves satisfy the invariants this repo promises about them
 VS="$HERE/../tools/validate-skills.sh"
 if [ -f "$VS" ]; then

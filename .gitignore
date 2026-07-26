@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# check-status.sh writes its run log and per-item decisions OUTSIDE this repo by
+# default (~/.contrib-receipts/). These patterns are a backstop for the case where
+# CONTRIB_LOG / CONTRIB_DECISIONS is pointed inside it: the decision records carry
+# real maintainer names and are private working notes, never publishable.
+status-log.tsv
+decisions.jsonl

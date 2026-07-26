@@ -1,0 +1,72 @@
+name: I tried it
+description: Report what a skill did when you used it for real — including when it misfired
+title: "I tried it: <skill name>"
+labels: ["ledger"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every skill here is meant to be lived in and corrected, not frozen — outcomes go in
+        [`LEDGER.md`](../../blob/main/LEDGER.md), misfires next to the wins. So far the only
+        person who can feed it is the author, which caps what the skills can learn. If you
+        ran one against a real repo, this is the most useful thing you can send.
+
+        **Misfires are more useful than wins.** A skill whose advice was wrong for your
+        house, or that never fired when it should have, is what sharpens it. There is no
+        wrong answer here and no need to be diplomatic about it.
+
+        Nothing private, please — no employer-internal detail, and no maintainer's name
+        where a role descriptor ("a committer", "the assignee") does the same job. That's
+        the same de-identification rule the skills themselves follow.
+  - type: input
+    id: skill
+    attributes:
+      label: Which skill
+      description: The skill directory name, e.g. `obey-the-houses-own-tooling`.
+      placeholder: obey-the-houses-own-tooling
+    validations:
+      required: true
+  - type: input
+    id: house
+    attributes:
+      label: Which repo you were contributing to
+      description: A link or `owner/repo` is ideal; "a large Java monorepo at work" is fine too.
+      placeholder: apache/solr
+    validations:
+      required: false
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      description: The LEDGER's own vocabulary — pick the closest.
+      options:
+        - worked — the advice held and the contribution landed as help
+        - misfired — the advice was wrong, or wrong for this house
+        - never fired — it should have loaded and didn't
+        - stale — the practice no longer matches how this house works
+        - unsure
+    validations:
+      required: true
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened
+      description: >
+        What you were doing, what the skill told you, and what actually happened. If a
+        maintainer reacted, a verbatim quote (with a link) is worth more than a summary —
+        that is what a receipt is.
+      placeholder: |
+        Ran it before pushing a changelog entry. It sent me to the repo's own generator
+        task, which I hadn't known existed. Reviewer merged without comment on the file.
+    validations:
+      required: true
+  - type: textarea
+    id: sharpen
+    attributes:
+      label: What would you change about the skill
+      description: >
+        Optional. A checklist item that was missing, a shortcut you took that the
+        Rationalizations table should pre-empt, or a scope note ("this is Apache-specific,
+        it broke on ours").
+    validations:
+      required: false

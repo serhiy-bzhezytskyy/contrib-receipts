@@ -70,10 +70,15 @@ its own — the skills are checklists and gates for work you drive. They follow 
 [Agent Skills](https://agentskills.io) format, so the same files work in other tools that read it.
 
 Two runnable tools ship alongside: [`tools/check-status.sh`](tools/check-status.sh) (the whose-court sweep,
-the receipt behind `track-whose-court` — edit its arrays to your own PRs/issues first) and
+the receipt behind `track-whose-court` — edit its arrays to your own PRs/issues first; it appends its run
+cost and one decision record per item to `~/.contrib-receipts/`, outside this repo) and
 [`tools/house-shape.py`](tools/house-shape.py) (computes what a house actually merges). `bash
 tests/check-status-smoke.sh` checks both parse and that the skills still satisfy the invariants this repo
 claims about them, via [`tools/validate-skills.sh`](tools/validate-skills.sh).
+
+Used one of these against a real repo? The **[I tried it](../../issues/new?template=i-tried-it.yml)**
+template feeds [`LEDGER.md`](LEDGER.md) — misfires especially, since every entry there is currently the
+author's own and that caps what the skills can learn.
 
 ## Two honest receipt classes
 

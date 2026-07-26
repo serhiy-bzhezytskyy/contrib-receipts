@@ -40,6 +40,16 @@ CASES=(
   # "my CI is red") — the difference is intent: find the real work, vs assert a claim.
   "red-ci|follow-the-thread|The CI on my pull request just went red on a test I never touched. I'd rather not just shrug it off — where does this actually lead?"
 
+  # follow-the-thread's SECOND entry point: neighborhood discovery reached from a
+  # LANDED fix rather than from a symptom. Its description is all symptom-language
+  # (red CI, flake, "not my bug"), so this tests whether the fold covers the
+  # "I'm already standing in this subsystem — what's near it?" route. It does:
+  # measured 10/11 (one run answered directly). This is the weakest case here and
+  # the one to watch — a drop below ~8/10 means the symptom-only vocabulary has
+  # stopped covering the post-fix route, and the fix is words in the description,
+  # not a separate neighborhood-discovery skill.
+  "post-fix-neighborhood|follow-the-thread|I just got my fix merged in a module I'd never touched before. While I was in there I noticed a few rough edges. What's worth doing next?"
+
   # The hardest case in the repo: the deliberately overlapping trio. This one is
   # about to ASSERT a technical fact to a maintainer, so verify- must win over
   # track-whose-court (whose turn) and offer-dont-grab (who owns the work).

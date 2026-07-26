@@ -51,8 +51,13 @@ You already have a scoped, agreed task to land — don't let thread-following be
       Follow downstream → upstream; the real root cause frequently lives one repo up.
 - [ ] **While fixing the upstream bug, READ the surrounding subsystem.** Adjacent
       open issues surface there — filed, open, and in the code you're already reading.
+      *Done when* you can name every open issue touching the files your fix touches,
+      or say plainly that there are none.
 - [ ] **Search open issues NEAR the one you're fixing** — same area, same reporter.
       One fix's investigation seeds the next; one query away is often a sibling bug.
+      *Done when* both queries have actually been run (same component/label, and the
+      reporter's other open issues) and each hit is either dismissed with a reason or
+      recorded as a candidate.
 - [ ] **Treat "it also fixes X" as a hypothesis, not a finding.** A convenient
       incidental green must be verified at the mechanism level — an adversarial test,
       not just a passing repro — or it's a false claim waiting to be caught.

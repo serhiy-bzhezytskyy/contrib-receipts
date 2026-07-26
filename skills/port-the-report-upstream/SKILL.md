@@ -69,6 +69,9 @@ actually look at their code.
         posting *in*. Verify each resolves to the expected title, or use SHAs. A
         number that autolinks to a nonexistent or unrelated issue in the target repo
         is the most visible possible tell.
+
+      *Done when* every anchor in the draft has been re-read in the second repo —
+      count them and account for each, rather than checking the ones you remember.
 - [ ] **Re-read the second house's contract**, don't assume it matches:
       - **labels** — an issue template can declare a label the repo doesn't have
         (downstream) while the other repo does (upstream);

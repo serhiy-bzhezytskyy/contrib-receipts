@@ -49,10 +49,12 @@ The problem lives in a single ticket, or nobody has signalled confusion about wh
 
 - [ ] **Traverse the link graph.** Walk every linked ticket (`jira issuelinks` /
       GitHub cross-refs) — causes, is-duplicated-by, relates-to — until the graph
-      closes. Draw it; the shape is the first deliverable.
+      closes. Draw it; the shape is the first deliverable. *Done when* a full pass
+      adds no new node — not when you've read "enough".
 - [ ] **Read ALL comments across all of them**, plus related PRs, commits, and dev@
       mail. The piece that resolves a conflation is usually in a ticket nobody linked
-      from the one the maintainer was standing in.
+      from the one the maintainer was standing in. *Done when* every node in the graph
+      you drew has been opened, including the ones that look irrelevant.
 - [ ] **Untangle conflated concerns into distinct threads, each with a home.** Name
       each sub-concern separately and assign it the issue that should own it.
 - [ ] **Verify each claim in code**, not from memory or from the comment history —

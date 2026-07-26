@@ -51,6 +51,8 @@ The issue is genuinely unclaimed greenfield work — then just grab it; the offe
       fails, then fix. The failing test is the evidence that makes the offer credible.
 - [ ] Self-red-team: run a wider regression sweep, not just the happy path; if it
       catches your own regression, that's a credibility win to volunteer, not hide.
+      *Done when* the sweep is wider than the tests you wrote — the surrounding
+      module's suite, compared against the same suite on clean `origin/main`.
 - [ ] Re-verify any parked/old fix on clean current HEAD before offering it.
 
 **3. OFFER — the comment that lands**

@@ -60,6 +60,12 @@ misfire / death criterion / overlaps) — the skills are meant to be lived in an
 corrected, not frozen. Applications (wins and misfires) are logged in
 [`../LEDGER.md`](../LEDGER.md), the wrong-answers log.
 
+Correction cuts both ways: **a skill should get shorter or sharper over time, not only
+longer.** When a new rule supersedes old wording, the old wording goes in the same edit
+and the removal is logged as `pruned` — otherwise a rule ends up stated three ways that
+drift apart. Checklist steps say how you know the step is *done*, so "I did that one"
+is checkable rather than felt.
+
 Where a receipt is a measured corpus correlation rather than a maintainer quote, the
 skill labels it as correlation-not-lever and names the confound.
 

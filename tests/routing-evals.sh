@@ -53,6 +53,13 @@ CASES=(
   # gate) on a question about agent instructions specifically.
   "house-rules|read-the-houses-agent-file-first,obey-the-houses-own-tooling|I'm about to start work in a repo that isn't mine and it ships a file telling assistants how to behave here. What do I do with it?"
 
+  # The other sourcing skill, and a deliberately BURIED trigger: this description
+  # opens with "When a maintainer says…", not "Use when…". It routes anyway, which is
+  # why front-loading the trigger is treated here as a fix for a measured miss rather
+  # than a blanket rule (Hermes-Agent's runtime truncates descriptions to 60 chars in
+  # its prompt index and so must front-load; Claude Code does not appear to).
+  "scattered-thread|consolidate-a-scattered-thread|A committer just said he isn't sure where this discussion should even continue — it's spread over a pile of tickets and a mailing list thread. What should I send back?"
+
   # Whose-turn, not a factual claim — the other side of the trio boundary.
   "whose-turn|track-whose-court|It's been quiet on everything I've got open. Is anyone waiting on me, or am I waiting on them?"
 )

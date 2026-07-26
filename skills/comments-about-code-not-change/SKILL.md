@@ -47,6 +47,8 @@ Docstrings/comments that explain *behavior* — even long ones — are fine; thi
       "confirmed by X", "the previous code did Y", "aligned per", "close-enough".
 - [ ] Before pushing, **grep the diff's added (`+`) comment lines** for `#[0-9]`,
       `@[a-z]`, "previously", "used to", "was a mistake", "aligned", "confirmed by".
+      *Done when* the grep has been run over the real diff and returns nothing, or
+      every hit is a regression test's ticket ref (the one exception below).
 - [ ] Move any change-context you find to the PR description / commit message.
 - [ ] Test-only exception: a regression test may cite its ticket ref, nothing more.
 

@@ -60,7 +60,8 @@ you had to argue for.
         result set, the field nobody sets.
 - [ ] **Finish the workflow.** Fixing one blocker usually reveals the next; a run
       that ends in a green checkmark you didn't verify the *output* of is not a
-      finished run.
+      finished run. *Done when* you have the artifact you originally wanted and have
+      read its fields — not when the command stopped raising.
 - [ ] **Reproduce against the REAL method, with a control that passes.** Bypass only
       the wiring you must (constructor/config/store); never mock the code under
       test. The control — the same call with healthy input, succeeding — is what

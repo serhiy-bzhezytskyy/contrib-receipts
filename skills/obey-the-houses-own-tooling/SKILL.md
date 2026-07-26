@@ -45,7 +45,8 @@ The file has no generator or the repo ships no gate task — then there's no hou
 
 - [ ] **Read AGENTS.md first** (then CONTRIBUTING / dev-docs). It lists the exact
       commands — don't stop at CONTRIBUTING/README/CLAUDE.md; strict houses put the
-      generator commands in AGENTS.md.
+      generator commands in AGENTS.md. *Done when* you can name the house's gate
+      command and every generator it documents, quoted from the file.
 - [ ] **Never hand-craft a generated file.** If a task owns it (`writeChangelog`,
       the formatter, the lock command), run the task. If you already hand-made one,
       regenerate it with the task so it matches the pattern.

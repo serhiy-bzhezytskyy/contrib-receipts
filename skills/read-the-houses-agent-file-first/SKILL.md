@@ -49,7 +49,9 @@ build/generator conventions, which is about tasks, not agent instructions).
 - [ ] Look for the house's agent file: `AGENTS.md` first, then `CLAUDE.md` or any
       other agent-instruction file it ships, then `CONTRIBUTING`/dev-docs.
 - [ ] Read it fully before invoking any other skill — it may set the build gate, the
-      comment policy, the PR shape, the sign-off, all house-specifically.
+      comment policy, the PR shape, the sign-off, all house-specifically. *Done when*
+      you have checked it for each of those four and can say which it sets and which
+      it leaves to these defaults.
 - [ ] **Where it contradicts a skill here, follow the house.** These skills are
       defaults; its file is local law. Note the conflict, don't silently override it.
 - [ ] Quote or point to the specific house rule when you act on it, so a reviewer

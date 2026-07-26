@@ -11,7 +11,15 @@ being invoked while only misfiring is worse than one that's honestly retired. **
 not "last invoked," is the death signal** — a skill with no useful outcome across recent applicable
 contributions is a candidate for retirement.
 
-Format: date | skill | context (repo/PR) | outcome (worked / misfired / stale) | what changed.
+Format: date | skill | context (repo/PR) | outcome (worked / misfired / stale / **pruned**) | what changed.
+
+**A skill should get shorter or sharper over time, not just longer.** Every entry here so far records
+something ADDED to a skill — a new checklist item, a new Rationalizations row. That is the failure mode
+worth naming: *sediment*, where stale wording survives because adding felt safer than deleting, and one
+rule ends up stated three ways that slowly drift apart. So a removal is a first-class outcome — logged
+as `pruned`, with what came out and what replaced it. When a new rule supersedes old wording, delete the
+old wording in the same edit and say so here; a skill that only accretes is decaying, however green its
+checks are.
 
 Every entry below is the author's own application, which caps what this log can learn: one person's
 houses, one person's blind spots. If you ran a skill against a real repo — especially if it misfired,

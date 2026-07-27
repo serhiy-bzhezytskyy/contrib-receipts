@@ -56,6 +56,18 @@ build/generator conventions, which is about tasks, not agent instructions).
       defaults; its file is local law. Note the conflict, don't silently override it.
 - [ ] Quote or point to the specific house rule when you act on it, so a reviewer
       sees you read their file (not a generic checklist).
+- [ ] **Follow the file's own pointers before concluding it is silent on something.**
+      An agent file is often an index: it may defer the real policy to
+      `CONTRIBUTING`, `dev-docs/`, or a foundation-level page. "AGENTS.md doesn't
+      mention X" is not "the house has no rule about X" until you've read what it
+      points at. *Done when* you have followed every document it names.
+- [ ] **Never attribute a rule to the house without a quote and a path.** If you
+      cannot cite file and line, say "my own preference" or "unverified" instead.
+      Inventing a house rule — usually a stricter one than exists — is worse than
+      having no rule, because it is self-reinforcing and never meets evidence.
+- [ ] **Separate what the house *wrote* from what its members *do*.** Both are facts,
+      they often differ, and the gap is informative. One `git log --grep` over a year
+      of the default branch settles "what do they actually do" in a single command.
 - [ ] Log any skill↔house conflict in the LEDGER — a recurring one means the skill's
       advice is house-specific and should say so.
 
@@ -64,8 +76,10 @@ build/generator conventions, which is about tasks, not agent instructions).
 | Shortcut | Why it fails |
 |---|---|
 | "I have a solid general rulebook, I don't need to read theirs." | A house that shipped an AGENTS.md told you exactly how it wants agent work done; applying a generic rule against an explicit local one reads worse than no process at all. |
-| "CONTRIBUTING.md is enough, I'll skip AGENTS.md." | Strict houses put the agent-specific instructions (generator commands, comment policy) in AGENTS.md, not CONTRIBUTING — a maintainer named "AGENTS.md" by file when flagging bypass. |
+| "Either file is enough on its own — I'll read one and skip the other." | They carry different things and each points at the other. Strict houses put agent-specific instructions (generator commands, comment policy) in AGENTS.md, not CONTRIBUTING — a maintainer named "AGENTS.md" by file when flagging bypass. And Solr's AGENTS.md line 3 defers its genAI policy *out* to `dev-docs/`. Reading one and stopping is how I asserted for weeks that a policy didn't exist. |
 | "My skill says X, so I'll do X even though their file says Y." | These skills are cross-house defaults; the house's file is local law and wins. Doing X against an explicit Y is the exact "didn't read our rules" signal. |
+| "I know the convention here, I don't need to cite it." | Then you cannot tell your own preference from the house's rule. I wrote "Apache convention is that the human contributor owns the commit (AGENTS.md says the same)" — neither clause was true, and it shaped decisions for weeks because it sat in my notes as established fact. No quote and path ⇒ say "my preference" or "unverified". |
+| "The written policy says X, so contributors do X." | Written policy and observed practice are different measurements, and the gap is informative. The same project asked only for a disclosure line in the PR description, while three of its committers went further and named the AI model in a commit trailer. Measure both; one `git log --grep` settles the second. |
 
 ## RECEIPT
 
@@ -83,6 +97,35 @@ that "changes shouldn't have code comments communicating the change" — a
 comment-policy rule that lives in the agent file, not just build commands. Proof that
 AGENTS.md is a broad contract to read whole, not a command index to skim; it is the
 source `comments-about-code-not-change` defers to.
+
+**Counter-receipt — the file is also an INDEX, and I asserted a rule the house
+contradicts (2026-07-27).** `AGENTS.md` line 3 points onward: *"Also see
+`dev-docs/how-to-contribute.adoc` for some guidelines when using genAI to contribute to
+Solr."* I never followed that pointer, and instead wrote in my own notes that "Apache
+convention is that the human contributor owns the commit (AGENTS.md says the same)" as
+grounds for stripping AI co-author trailers. Measured against source:
+
+- The document `AGENTS.md` actually points at carries a written policy asking the
+  **opposite of silence**: *"For major AI-assisted contributions, disclose the use of AI
+  tools in your PR description"*, and in its do-not list, no *"AI generated code without
+  human review and transparent declaration."*
+- Practice went further than the policy: **12 commits on the default branch in ~18
+  months carry a `Co-authored-by: <AI model>` trailer, from three different
+  committers** — including the person who wrote the AI policy. Widen the pattern to
+  Copilot-class trailers and it is **38 commits from six authors**, so the gap between
+  the written policy and observed practice is larger still. Count per-commit, and state
+  your pattern — `grep -c` over `git log --format='%B'` counts *lines*, and the number
+  moves with the pattern:
+  `git log --since=18.months --format=%H origin/main | while read h; do git log -1 --format=%B $h | grep -qiE 'co-authored-by:.*(claude|anthropic)' && echo $h; done | wc -l`
+- The foundation's own guidance recommends a different token entirely (`Generated-by:`)
+  and is silent on AI co-authorship — and that token appears **zero** times in the repo.
+
+Three separate facts — what the foundation recommends, what the house wrote, what its
+committers do — and I had collapsed all three into one invented convention that matched
+none of them. The underlying preference (a contributor choosing not to add AI trailers)
+was legitimate and unchanged; what failed was laundering a preference into house
+authority without a citation. Note the direction: the invented rule was *stricter* than
+reality, which is the bias to expect — conservatism feels safe and is still wrong.
 
 ## Lifecycle
 

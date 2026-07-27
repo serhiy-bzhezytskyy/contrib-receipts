@@ -33,6 +33,16 @@ REPO="$(cd "$HERE/.." && pwd)"
 command -v claude >/dev/null 2>&1 || { echo "skip - claude CLI not on PATH"; exit 0; }
 command -v python3 >/dev/null 2>&1 || { echo "skip - python3 not on PATH"; exit 0; }
 
+# Running this from INSIDE a Claude Code session is the common case (you're editing a
+# skill and want to know if it routes) — and the CLI refuses to nest:
+#   "Claude Code cannot be launched inside another Claude Code session."
+# That refusal is silent here: the JSON parse finds no Skill tool_use and every case
+# reports `saw: (none)`, which looks exactly like a routing regression across ALL cases
+# at once. That false alarm cost a debugging detour on 2026-07-27. Unset the marker so
+# the child launches, and treat an all-cases-(none) result as harness breakage until
+# proven otherwise.
+unset CLAUDECODE
+
 # --- the cases: name | expected skill(s), comma-separated | prompt ---
 # Keep prompts in a user's voice. If you add a skill, add a case for it here.
 CASES=(
@@ -56,7 +66,11 @@ CASES=(
   "assert-to-maintainer|verify-before-a-committer-comment|I want to leave a comment on the ticket saying my patch is what fixes those failing tests. About to paste it in."
 
   # Was provably unroutable until its description gained a use-clause: the
-  # regression test for that fix.
+  # regression test for that fix — and then the collision case. Adding
+  # read-the-projects-origin-story dropped this from 3/3 to 1/3 because both
+  # descriptions claimed fork/port vocabulary; after that skill was narrowed to
+  # "about to propose" plus an explicit hand-off line, this measured 7/9 and then
+  # 3/3 twice. Watch it: a fresh drop here means a new skill is competing again.
   "fork-upstream|port-the-report-upstream|This project looks like it was forked from another one, and the file I just patched seems untouched since the copy. Does the original still have the same problem?"
 
   # Front-gate precedence. Must beat obey-the-houses-own-tooling (build/generator
@@ -75,8 +89,28 @@ CASES=(
   # issue per PR when fixes are independent.
   "package-cluster|one-fix-one-pr-then-coordinate|My one branch ended up fixing three different filed bugs, all in the same two files. How should I actually open this?"
 
+  # The number-discipline skill. Competes with use-the-tool-for-its-purpose (which
+  # owns "run it at realistic N") and verify-before-a-committer-comment (which owns
+  # "is my claim true") — this one is specifically: is the number above its own noise?
+  # Prompt avoids "noise floor", "RSD", "variance" and "baseline".
+  "is-the-number-real|state-the-noise-floor|I benchmarked the new version against the old one and it came out 13% slower. About to write that up for the mailing list. Anything I should do first?"
+
   # Whose-turn, not a factual claim — the other side of the trio boundary.
   "whose-turn|track-whose-court|It's been quiet on everything I've got open. Is anyone waiting on me, or am I waiting on them?"
+
+  # Origin-story excavation. Competes with discuss-in-issue-first (which is "raise it
+  # before you code") and consolidate-a-scattered-thread (which traverses a LIVE
+  # discussion) — this one is about reading the SETTLED history that created a young
+  # repo, before proposing to it. Prompt avoids "origin story", "founding" and "VOTE".
+  "why-does-this-exist|read-the-projects-origin-story|This subproject is only a couple of months old and I'm about to suggest a fairly big addition to it. How do I find out what its authors already decided and argued about, so I'm not repeating something?"
+  # Nudge timing/content. Competes directly with track-whose-court, whose description
+  # already carries "nudge vs wait" — that one answers WHOSE TURN, this one answers
+  # WHETHER NOW and WHAT TO SAY. Prompt avoids "nudge", "reminder" and "new
+  # information" so it isn't circular. Either is a legitimate answer here (whose-turn
+  # is a prerequisite for the nudge decision), so both are accepted. Measured 3/3 on
+  # adding the skill, with `whose-turn` at 4/5 alongside it and every miss `(none)` —
+  # i.e. noise, not the vocabulary collision that read-the-projects-origin-story caused.
+  "stalled-pr|nudge-with-new-information,track-whose-court|My pull request has had no response for a few days. Should I say something on it, and if so what?"
 )
 
 RUNS="${RUNS:-1}"

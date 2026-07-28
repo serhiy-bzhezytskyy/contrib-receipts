@@ -4,14 +4,16 @@ description: >
   When a red CI test, a failing check, or a single bug crosses your path, follow it
   instead of dismissing it — one thread reliably sources many issues worth working.
   A failing test maps to an existing issue whose root cause is often an existing
-  UPSTREAM bug (downstream symptom → upstream cause); fixing that bug means reading
-  the surrounding subsystem, where adjacent open issues surface; searching near the
-  one you're fixing (same area / same reporter) seeds the next. A convenient "it also
-  fixes X" is a hypothesis, not a finding — verify the mechanism. This is a SOURCING
-  method: it finds where the help actually is, before any PR. Use when you hit a red
-  CI on your own PR, a flake, or one bug and want to find the real work around it.
-  Trigger terms: red CI, flaky test, follow the thread, downstream symptom, upstream
-  root cause, adjacent issue, sibling bug, "not my bug", where's the real work.
+  UPSTREAM bug; fixing that means reading the surrounding subsystem, where adjacent
+  open issues surface; searching near it seeds the next. A convenient "it also fixes
+  X" is a hypothesis, not a finding — verify the mechanism. A SOURCING method: it
+  finds where the help actually is, before any PR. Use when you hit a red CI, a
+  flake, or one bug — and equally when a MAINTAINER hands you a lead in passing
+  ("not fully related to this issue, but…", "years ago I…", "that's always been
+  fragile"), the same method from the other end.
+  Trigger terms: red CI, flaky test, follow the thread, upstream root cause,
+  adjacent issue, sibling bug, "not my bug", where's the real work, reviewer
+  mentioned something unrelated, offhand remark in a review, act on that comment.
 scope: general
 principle: ../../PRINCIPLES.md
 ---
@@ -33,6 +35,11 @@ The discipline is one question at every hop: **"why does THIS happen?"** instead
 
 ## When to use
 
+- **A maintainer hands you the thread** — the highest-value entry point and the easiest to
+  waste. Phrases to treat as a lead, not as small talk: *"not fully related to this issue,
+  but…"*, *"on a branch years ago I…"*, *"we've always wanted to…"*, *"that's always been
+  fragile"*. A committer volunteering unpaid history is telling you where a real defect
+  lives, from memory nobody else has. See the second receipt.
 - A red CI or a flake appears on your own PR, or on a repo you're already in.
 - You've root-caused one bug and want to know whether it's isolated or a nest.
 - You're standing in an unfamiliar subsystem and want to read outward, not just fix
@@ -69,6 +76,7 @@ You already have a scoped, agreed task to land — don't let thread-following be
 | "The red CI is just flaky — dismiss it." | The flake may map to a real upstream bug; following it downstream→upstream is exactly how one thread sourced three real issues. |
 | "It also happens to fix X — I'll say so." | A convenient incidental green is a hypothesis, not a finding; unverified at the mechanism level it's a false claim waiting to be caught. |
 | "I fixed the one bug, that thread's done." | The fix is a seam: read the surrounding subsystem and search near it (same area/reporter) — the adjacent open issue is one query away. |
+| "He said it was *not related* to my issue, so it's just chat." | That phrase is how a committer offers an adjacent defect without asking you to widen the PR. On apache/solr#4638 a committer wrote *"Not fully related to this issue, but on a custom branch many years ago, I dealt with that fragile expectation of a SolrServerException by just unrolling the exception chain to get the root cause"* — which lands on the exact line my diff added. Filed away, that is a scoped follow-up with a committer's prior art attached; read as chat, it evaporates. |
 
 ## RECEIPT
 
@@ -89,6 +97,40 @@ needed its own root-cause fix.
 
 **One Solr CI flake sourced 3 Jetty issues + 3 PRs.**
 Source detail: `agentic-oss/SCOREBOARD.md` + `agentic-oss/jetty/discovery-trail.md`.
+
+**Second receipt — the maintainer-handed thread (apache/solr#4638, 2026-07-27).** The receipt above is
+me following a thread outward. This one is a committer putting one in my hands, in a form easy to mistake
+for small talk.
+
+A Solr committer with no prior interaction with me, on a PR that had sat with zero reviews:
+
+> "Seems fine to me.
+>
+> **Not fully related to this issue, but** on a custom branch many years ago, I dealt with that fragile
+> expectation of a `SolrServerException` by just **unrolling the exception chain to get the root cause**
+> rather than hoping the exception is a `SolrServerException`."
+
+Read carelessly that is a soft +1 with a reminiscence attached. Read properly it contains four things:
+
+1. **A defect claim** — the codebase's expectation that a failure arrives as `SolrServerException` is
+   *fragile*.
+2. **A fix shape** — unroll the cause chain to the root rather than type-testing the top.
+3. **Prior art** — he has already done it, on a private branch, and it worked.
+4. **An explicit scope fence** — *"not fully related to this issue"* means *don't put it in this PR*.
+
+And it lands on the diff under review: that PR's change is precisely
+`catch (Throwable e) { handleError(new SolrServerException(...e.getMessage(), e), ...) }` — i.e. it *adds* a
+wrap that the reviewer is calling a fragile pattern. So the hint is not adjacent trivia; it is a reviewer
+declining to block a narrow fix while telling you where the real one is.
+
+**What the skill does with it:** file it as a scoped follow-up carrying his quote as the prior art, reply on
+the PR engaging the hint *without* widening the diff, and leave the PR narrow. What loses it: thanking him
+and moving on, or bolting the refactor onto #4638 and turning a 7-line fix into an exception-handling
+redesign.
+
+**The general form:** committers hedge their best leads. *"Not fully related, but…"*, *"years ago I…"*,
+*"that's always been fragile"* are how someone with scarce time hands over knowledge they are not going to
+act on themselves. Those clauses mark the lead, not diminish it.
 
 ## Lifecycle
 

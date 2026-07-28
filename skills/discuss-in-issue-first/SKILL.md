@@ -56,6 +56,7 @@ The change is genuinely trivial (typo, broken link, mechanical dep-bump) — the
 |---|---|
 | "I'll open the PR straight away — the code speaks for itself." | Prior issue discussion lands it faster (measured 3.4 vs 5.8 days); a cold PR risks a design objection and a full rewrite. |
 | "Discussing first won't raise my odds, so why bother?" | The lever is *speed*, not acceptance — you discuss to shorten time-to-merge and dodge a rewrite, not to get in at all. |
+| "The maintainer already asked for it, so I can just build it." | An invited feature is not a priced feature. On solr-orbit#61 the maintainer asked for an "elegant" auto-resolve believing it was a field read; writing the issue showed it needed a persisted-format change, and he then called it feature creep and proposed closing. Same finding either way — but from an issue it costs an afternoon, and from a PR it costs the patch plus a maintainer having to reject something he invited. |
 | "I'll minimize the back-and-forth to look decisive." | In the same corpus more review comments correlated with a *higher* merge rate; cycles are engagement that lands, not doom. |
 
 ## RECEIPT
@@ -78,6 +79,36 @@ issue-first merges ~1.7× faster. Merge-rate gap is negligible (0.3 pp, noise).
   Observational data can't separate them. Not a maintainer quote — a measured pattern.
 - **Do NOT bolt on "minimize review cycles":** the same corpus shows merge-rate rises
   with review-comment count (74%→89%), refuting that advice.
+
+**Second receipt — a maintainer-endorsed idea DECLINED after the issue priced it (apache/solr-orbit#61,
+2026-07-27).** The corpus above measures *speed*; this one shows the mechanism, and it is the stronger of
+the two.
+
+A maintainer asked for a follow-up in his own review, believing it was cheap:
+
+> "It would of course be elegant if we auto resolved the workload location from the stored run. Perhaps as a
+> separate improvement in addition to this more explicit one?"
+
+Rather than implement it, I filed the issue — and the act of writing it up required reading how the stored
+run is actually persisted. It turned out the thing to "just read" **is not stored at all**: the run keeps the
+workload's name, params and revision, but never its *source*. So the work was a persisted-format change plus
+a backward-compatibility fallback for existing files, plus coordination with the upstream project whose copy
+of that file is byte-identical. The issue said so, and named the two decisions that were not mine.
+
+**Ten minutes before merging a different PR of mine, the same maintainer declined it:**
+
+> "Since this is not a simple path read from the test-run file, I think we should defer or close this until
+> it is deemed very useful. Right now it just feels like feature creep."
+
+He was right, and **the issue is what made him right on time.** He had asked for the feature; the write-up
+priced it; he declined the price. Arriving with a PR would have produced the identical finding *after* the
+work, and would have put a maintainer in the position of rejecting code he had implicitly invited — the worst
+version of this exchange for both sides.
+
+**So the lever is bigger than speed:** issue-first converts "work then discover" into "discover then decide",
+and the cost of a declined issue is one afternoon of reading, not a rejected patch. Note also the honesty
+requirement that made it work — the issue had to state the *inconvenient* finding (this is harder than you
+think) rather than the flattering one (great idea, I'll take it).
 
 ## Lifecycle
 

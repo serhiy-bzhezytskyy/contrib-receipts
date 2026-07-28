@@ -95,6 +95,41 @@ CASES=(
   # Prompt avoids "noise floor", "RSD", "variance" and "baseline".
   "is-the-number-real|state-the-noise-floor|I benchmarked the new version against the old one and it came out 13% slower. About to write that up for the mailing list. Anything I should do first?"
 
+  # --- the eight original etiquette skills. Added later than the rest: every skill
+  # shipped during the 07-26/27 arc got a case on arrival, while these eight had gone
+  # unmeasured the longest — the inverse of what coverage should look like. All eight
+  # routed first time, and the two pairs most at risk of colliding held at 3/3
+  # (comment-in-code vs pr-body-voice; how-big-a-pr vs assigned-issue). So the original
+  # descriptions were sound — worth knowing, since the newest skills needed two fixes.
+
+  # Source comments. Competes with write-in-your-own-voice (prose register) — this one
+  # is specifically about what a comment IN THE CODE may say.
+  "comment-in-code|comments-about-code-not-change|I added a couple of explanatory comments in the file I patched, mentioning the ticket and what the old behaviour was. Fine to push?"
+
+  # Timing of the conversation. Competes with read-the-projects-origin-story (settled
+  # history) and offer-dont-grab (owned work) — this one is "talk before you code".
+  "before-i-code|discuss-in-issue-first|I've got a design in mind for a fairly substantial change to a project I don't maintain. Should I just build it and show them, or something else first?"
+
+  # PR shape vs the house median. Competes with one-fix-one-pr-then-coordinate, which
+  # owns "one issue per PR" — this one is size/files/title conventions.
+  "how-big-a-pr|match-the-house-shape|How large should my change be for a project like this, and does the title need to look a particular way? I don't want it bounced on packaging."
+
+  # History rewriting on a reviewed PR. Prompt avoids "force-push" and "amend".
+  "tidy-history|no-force-push-a-reviewed-pr|Someone has already left comments on my PR and my commits are messy. Can I clean them up into one before they look again?"
+
+  # Owned/dormant work. Competes with discuss-in-issue-first (both "align first").
+  "assigned-issue|offer-dont-grab|The bug I want to fix is assigned to one of the maintainers, but nothing has happened on it for months. Can I work on it?"
+
+  # The legal sign-off contract. Prompt avoids DCO/ECA/CLA and "Signed-off-by".
+  "legal-gate|sign-off-the-house-way|First time contributing to this project. Is there anything I need to attach to my commits before I open the PR, legally speaking?"
+
+  # Finding work by running the thing. Competes with follow-the-thread (starts from a
+  # symptom someone else hit) — this one starts from having no lead at all.
+  "where-to-contribute|use-the-tool-for-its-purpose|I'd like to contribute to a project I've never worked on and there's no obvious bug to pick up. How do I find something real to fix?"
+
+  # Human-facing prose register. Competes with comments-about-code-not-change.
+  "pr-body-voice|write-in-your-own-voice|Drafting the description for my pull request. How should I write it so it doesn't read like it was generated?"
+
   # Whose-turn, not a factual claim — the other side of the trio boundary.
   "whose-turn|track-whose-court|It's been quiet on everything I've got open. Is anyone waiting on me, or am I waiting on them?"
 

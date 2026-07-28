@@ -112,6 +112,31 @@ PYCHECK
   then :; else bad "inline python3 -c snippet check failed"; fi
 fi
 
+# 4c. mktemp templates must have TRAILING X's.
+# This test suite passed on 2026-07-28 while the entire ASF JIRA section of check-status.sh was
+# dead: `mktemp /tmp/jira_check_XXXX.py` is a literal path on BSD/macOS (no suffix allowed after
+# the X's), so the second run ever hit "File exists" and 7 JIRA keys went unswept behind a
+# clean-looking summary. Compiling the heredocs proved the Python was fine and told us nothing
+# about whether it would be REACHED.
+# Both greps below match ASSIGNMENTS ($(mktemp ...)) only. Matching the bare word also matched the
+# comment that documents this very trap, so the first version of this test failed on prose.
+MKT_ASSIGN='^[^#]*=\$\(mktemp'
+if grep -nE "${MKT_ASSIGN}[^)]*_X+\\." "$SCRIPT" >/dev/null 2>&1; then
+  bad "mktemp template has a suffix after the X's (literal path on macOS):"
+  grep -nE "${MKT_ASSIGN}[^)]*_X+\\." "$SCRIPT" | sed 's/^/       /'
+else
+  pass "no mktemp template has a suffix after the X's"
+fi
+
+# 4d. every mktemp must be guarded, so a failure degrades loudly instead of running python3 on ""
+n_mkt=$(grep -cE "$MKT_ASSIGN" "$SCRIPT")
+n_grd=$(grep -cE "${MKT_ASSIGN}.*\\|\\|" "$SCRIPT")
+if [ "$n_mkt" -gt 0 ] && [ "$n_mkt" -eq "$n_grd" ]; then
+  pass "every mktemp call has a || failure branch ($n_mkt/$n_mkt)"
+else
+  bad "unguarded mktemp: $n_grd of $n_mkt guarded; a failure would silently skip its whole section"
+fi
+
 # 5. the skills themselves satisfy the invariants this repo promises about them
 VS="$HERE/../tools/validate-skills.sh"
 if [ -f "$VS" ]; then

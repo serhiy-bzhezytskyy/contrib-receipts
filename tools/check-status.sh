@@ -46,13 +46,24 @@ print(json.dumps({
 GH_PRS=(
   "apache/solr:4638" "apache/solr:4640" "apache/solr:4643" "apache/solr:4644"
   "apache/solr:4648"
-  "mikemccand/luceneutil:595" "mikemccand/luceneutil:600"
-  "jetty/jetty.project:15435"
+  "mikemccand/luceneutil:595" "mikemccand/luceneutil:600" "mikemccand/luceneutil:604"
+  "jetty/jetty.project:15435" "jetty/jetty.project:15472" "jetty/jetty.project:15473"
   "apache/lucene:16411"
+  # solr-orbit: #59 merged 2026-07-27, kept listed so a post-merge comment still surfaces
+  "apache/solr-orbit:58" "apache/solr-orbit:59" "apache/solr-orbit:60"
+  # OSB — the upstream siblings of the three solr-orbit fixes
+  "opensearch-project/opensearch-benchmark:1096"
+  "opensearch-project/opensearch-benchmark:1097"
+  "opensearch-project/opensearch-benchmark:1098"
 )
 # --- GitHub issues I'm watching / where I OFFERED a fix (comment-first, PR pending nod) ---
 GH_ISSUES=( "apache/lucene:14399" "apache/lucene:13313" "jetty/jetty.project:15368"
-  "jetty/jetty.project:13569" "opensearch-project/OpenSearch:17140" "opensearch-project/OpenSearch:21537" )
+  "jetty/jetty.project:13569" "opensearch-project/OpenSearch:17140" "opensearch-project/OpenSearch:21537"
+  # solr-orbit issues I created (#56 closed by #59; #61 is parked on Jan's "feature creep" call)
+  "apache/solr-orbit:55" "apache/solr-orbit:57" "apache/solr-orbit:61"
+  "opensearch-project/opensearch-benchmark:1093"
+  "opensearch-project/opensearch-benchmark:1094"
+  "opensearch-project/opensearch-benchmark:1095" )
 # --- ASF JIRA keys ---
 JIRAS=( SOLR-17764 SOLR-17316 SOLR-12239 SOLR-7177 SOLR-18308 SOLR-3284 SOLR-16851 )
 
@@ -64,22 +75,58 @@ ITEMS=0             # PRs + issues + JIRA keys swept
 BALL_ON_YOU_GH=0    # "ball is on you" decided from a GitHub channel
 BALL_ON_YOU_XTR=0   # "ball is on you" decided from a NON-GitHub channel (ASF JIRA / dev@)
 
-echo "### GitHub PRs — all 3 comment channels + who moved last"
+echo "### GitHub PRs — all 4 channels (3 comment + commits) + who moved last"
 CHANNELS=$((CHANNELS+1))
 for item in "${GH_PRS[@]}"; do
   repo="${item%%:*}"; n="${item##*:}"
-  # gather (author, iso-date) across issue-comments, review-comments, reviews
+  # gather (author, iso-date) across issue-comments, review-comments, reviews, AND commits.
+  # Commits are the 4th channel: a maintainer clicking "Update branch" writes a merge commit onto
+  # MY branch and leaves NO comment anywhere, so a comment-only sweep reports "no activity".
+  # Missed exactly that twice on 2026-07-27/28 (solr-orbit #58 351f1541, #60 9b4f1516, both janhoy).
+  # It also matters mechanically, not just socially: the next push is rejected non-fast-forward,
+  # and force-pushing past it would delete a committer's commit from the branch.
   rows=$( { gh api "repos/$repo/issues/$n/comments" --jq '.[] | "\(.created_at)\t\(.user.login)\tissue-comment"' 2>/dev/null
            gh api "repos/$repo/pulls/$n/comments"  --jq '.[] | "\(.created_at)\t\(.user.login)\treview-comment"' 2>/dev/null
            gh api "repos/$repo/pulls/$n/reviews"   --jq '.[] | select(.submitted_at!=null) | "\(.submitted_at)\t\(.user.login)\treview:\(.state)"' 2>/dev/null
+           gh api "repos/$repo/pulls/$n/commits"   --jq '.[] | "\(.commit.author.date)\t\(.author.login // .commit.author.email)\tcommit:\(.sha[0:8])"' 2>/dev/null
          } | sort )
   state=$(gh pr view "$n" --repo "$repo" --json state,reviewDecision --jq '"\(.state)/\(.reviewDecision // "no-review")"' 2>/dev/null)
   last=$(echo "$rows" | tail -1)
   lastwho=$(echo "$last" | cut -f2)
+  lastkind=$(echo "$last" | cut -f3)
   ball="⚪ maintainer"
   verdict="them"
   [ -z "$rows" ] && ball="⚪ maintainer (no comments yet)" && verdict="them-no-comments"
-  [ -n "$lastwho" ] && [ "$lastwho" != "$ME" ] && { ball="🔴 YOU (last: $lastwho)"; verdict="you"; BALL_ON_YOU_GH=$((BALL_ON_YOU_GH+1)); }
+  if [ -n "$lastwho" ] && [ "$lastwho" != "$ME" ]; then
+    case "$lastwho" in
+      # A bot's CI/DCO chatter is not a human waiting on me. Counting it as "ball on you"
+      # produced 3 fake red flags on the OSB PRs (last mover: github-actions[bot]) and buried
+      # the one real cross-tracker reply among them.
+      *"[bot]"|github-actions|codecov*|copilot*|dependabot*)
+        ball="⚫ bot noise (last: $lastwho) — no human is waiting"
+        verdict="bot" ;;
+      *)
+        case "$lastkind" in
+          commit:*)
+            # NOT a reply owed — nobody asked a question. It's a branch-state obligation:
+            # rebase onto their commit before the next push, never force-push past it.
+            ball="🟠 THEIR COMMIT on your branch ($lastwho $lastkind) — rebase, do NOT force-push"
+            verdict="you-branch-state"
+            BALL_ON_YOU_GH=$((BALL_ON_YOU_GH+1)) ;;
+          *)
+            # On a MERGED/CLOSED PR an approval or thanks is the end of the exchange, not a
+            # question. #59 showed as "YOU" purely because janhoy's APPROVED review came last.
+            case "$state" in
+              MERGED*|CLOSED*)
+                ball="✅ closed out (last: $lastwho $lastkind) — nothing owed"
+                verdict="them-closed" ;;
+              *)
+                ball="🔴 YOU (last: $lastwho)"; verdict="you"
+                BALL_ON_YOU_GH=$((BALL_ON_YOU_GH+1)) ;;
+            esac ;;
+        esac ;;
+    esac
+  fi
   ITEMS=$((ITEMS+1))
   decide github-pr "$repo#$n" "$verdict" "$lastwho" "$state"
   printf "PR %s#%s  [%s]  %s\n" "$repo" "$n" "$state" "$ball"
@@ -104,7 +151,10 @@ done
 hr
 echo "### ASF JIRA — comments (the channel that was being MISSED)"
 CHANNELS=$((CHANNELS+1))
-JIRA_PY=$(mktemp /tmp/jira_check_XXXX.py)
+# NOTE: the X's must be TRAILING. BSD/macOS mktemp does not accept a suffix after them, so
+# `mktemp /tmp/jira_check_XXXX.py` creates that LITERAL path — no randomness — and then fails
+# with "File exists" on the next run, which silently killed this whole section on 2026-07-28.
+JIRA_PY=$(mktemp -t jira_check) || { echo "  ERR: mktemp failed, JIRA section SKIPPED"; JIRA_PY=""; }
 cat > "$JIRA_PY" <<'PYEOF'
 import json, sys, os
 key = os.environ["KEY"]; me = os.environ["ME_JIRA"]
@@ -128,9 +178,20 @@ try:
 except Exception as e:
     print("%s  ERR %s" % (key, e))
 PYEOF
+SWEEP_ERRORS=0   # sections/items that failed to produce a verdict — must never be silent
 for j in "${JIRAS[@]}"; do
-  out=$(curl -s "https://issues.apache.org/jira/rest/api/2/issue/${j}?fields=status,updated,comment" 2>/dev/null | \
-    KEY="$j" ME_JIRA="$ME_JIRA" python3 "$JIRA_PY")
+  if [ -z "$JIRA_PY" ]; then out=""; else
+    out=$(curl -s "https://issues.apache.org/jira/rest/api/2/issue/${j}?fields=status,updated,comment" 2>/dev/null | \
+      KEY="$j" ME_JIRA="$ME_JIRA" python3 "$JIRA_PY" 2>&1)
+  fi
+  # An empty or ERR result is NOT "nothing to do" — it means this channel was not actually checked.
+  # Counting it as swept is how a run reports "items=37" while 7 JIRA keys were never looked at.
+  if [ -z "$out" ] || echo "$out" | grep -q "ERR"; then
+    echo "  ⛔ $j — NOT CHECKED (empty/error response); this key was NOT swept"
+    SWEEP_ERRORS=$((SWEEP_ERRORS+1))
+    decide asf-jira "$j" "unchecked" "" "empty or error response"
+    continue
+  fi
   echo "$out"
   ITEMS=$((ITEMS+1))
   # a "YOU -> reply" on JIRA is a ball-on-you decided by a channel GitHub can't see = cross-tracker signal
@@ -150,7 +211,7 @@ echo "### dev@ mailing list — lists.apache.org API (no auth). Threads I'm in +
 CHANNELS=$((CHANNELS+1))
 # months to scan (current + prior); extend as needed
 MAIL_MONTHS=( 2026-07 2026-08 )
-MAIL_PY=$(mktemp /tmp/mail_check_XXXX.py)
+MAIL_PY=$(mktemp -t mail_check) || { echo "  ERR: mktemp failed, dev@ section SKIPPED"; MAIL_PY=""; }
 cat > "$MAIL_PY" <<'PYEOF'
 import json, sys, os
 me = "Serhiy Bzhezytskyy"
@@ -169,9 +230,16 @@ for e in sorted(hits, key=lambda x: x.get("epoch", 0)):
 PYEOF
 for dom in solr.apache.org lucene.apache.org; do
   for m in "${MAIL_MONTHS[@]}"; do
-    curl -s -G https://lists.apache.org/api/stats.lua \
+    [ -z "$MAIL_PY" ] && break
+    out=$(curl -s -G https://lists.apache.org/api/stats.lua \
       --data-urlencode list=dev --data-urlencode domain="$dom" --data-urlencode d="$m" 2>/dev/null | \
-      LABEL="dev@$dom $m" python3 "$MAIL_PY"
+      LABEL="dev@$dom $m" python3 "$MAIL_PY" 2>&1)
+    if [ -z "$out" ] || echo "$out" | grep -q "ERR"; then
+      echo "  ⛔ dev@$dom $m — NOT CHECKED (empty/error response)"
+      SWEEP_ERRORS=$((SWEEP_ERRORS+1))
+    else
+      echo "$out"
+    fi
   done
 done
 rm -f "$MAIL_PY"
@@ -187,6 +255,14 @@ mkdir -p "$(dirname "$LOG")"
 printf '%s\t%d\t%d\t%d\t%d\n' "$TS" "$CHANNELS" "$ITEMS" "$BALL_ON_YOU_GH" "$BALL_ON_YOU_XTR" >> "$LOG"
 echo "### run logged → $LOG"
 echo "    channels=$CHANNELS items=$ITEMS ball-on-you: github=$BALL_ON_YOU_GH cross-tracker=$BALL_ON_YOU_XTR"
+# A sweep that couldn't reach a channel must say so LOUDLY and last. The 2026-07-28 run printed a
+# clean "items=37 cross-tracker=0" while every one of the 7 JIRA keys had silently failed — and
+# cross-tracker=0 is indistinguishable from "JIRA is quiet", which is the answer this tool exists
+# to give. An unreachable channel is an UNKNOWN, never a zero.
+if [ "${SWEEP_ERRORS:-0}" -gt 0 ]; then
+  echo "### ⛔ INCOMPLETE SWEEP: $SWEEP_ERRORS item(s)/section(s) were NOT checked (see ⛔ above)."
+  echo "    Do NOT read the counters above as 'all quiet' — those channels returned no verdict at all."
+fi
 echo "### per-item decisions → $DECISIONS ($(grep -c . "$DECISIONS" 2>/dev/null || echo 0) total)"
 echo "    a LEDGER entry weeks from now is written from these, not from memory:"
 echo "    jq -r 'select(.ts==\"$RUN_TS\" and (.verdict|startswith(\"you\"))) | \"\(.channel) \(.item) last=\(.last)\"' $DECISIONS"

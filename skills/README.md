@@ -83,6 +83,15 @@ no maintainer handles in prose, English-only. Add `--online` to re-resolve every
 GitHub receipt link, so a receipt that goes dead fails a check instead of aging
 quietly. It runs as part of [`../tests/check-status-smoke.sh`](../tests/check-status-smoke.sh).
 
+The de-identification check is the one with real stakes and the one that has been wrong
+most often — twice a miss, once a false positive, each caught by hand. It now treats
+`@handle` and `[~handle]` as hits unconditionally, and a bare backticked `login` as a hit
+only when the same line attributes something to it (*said*, *commented*, *reviewed*,
+*verbatim*…). That gate is deliberate: without it the rule flags every skill name, every
+SHA and `null`, and a check that cries wolf gets ignored — which is how this kind of rule
+fails in practice. **Honest limit: a bare login with no attribution word nearby still
+passes.** It is a filter, not a proof; the reader is still the last line.
+
 Whether a skill actually *loads* is a separate question, and a separate test:
 [`../tests/routing-evals.sh`](../tests/routing-evals.sh) puts a real request to Claude
 in a clean directory holding only these skills, and checks which one fires. Claude

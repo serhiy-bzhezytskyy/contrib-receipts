@@ -190,27 +190,65 @@ else:
     ok("all relative links resolve")
 
 # --- de-identification: no maintainer handles in prose ---
-# Pattern-based on purpose: hard-coding the names to look for would itself put them
-# in the repo. JIRA `[~handle]` and bare `@handle` are the two forms that have shown
-# up. tools/ is exempt: an owner handle inside an API path is a functional coordinate.
-# Generic placeholders are the vocabulary these skills teach in ("no maintainer
-# @handles in source"), not references to a person — so they are not hits.
+# The rule: no model of a NAMED MAINTAINER in prose. Pattern-based on purpose — hard-
+# coding the names to look for would itself put them in the repo.
+#
+# This check has been wrong in both directions, which is why it is shaped as it is:
+#   - MISS `@msfroh` inside a quote (a hand-grep with a hardcoded name list found it);
+#   - MISS a bare backticked `login` — no sigil to match at all;
+#   - FALSE POSITIVE on the author's own login in a message addressed to him.
+# So: two sigil forms are always hits, and a bare backticked token is a hit only with
+# ATTRIBUTION CONTEXT on the same line (said / commented / reviewed / verbatim / …).
+# Without that gate a bare-token rule flags 40 things — every skill name, every SHA,
+# `null`, `main`, `aggregate` — and a check that cries wolf gets ignored, which is how
+# a de-identification rule fails in practice.
+#
+# Exempt by construction, derived not hardcoded so the lists cannot drift: skill
+# directory names and routing-eval case names (both are backticked constantly when
+# discussing routing). tools/ is out of scope entirely — an owner handle inside an API
+# path is a functional coordinate, not prose about a person.
 PLACEHOLDERS = {"handle", "handles", "handle)", "name", "names", "someone", "me",
                 "you", "user", "username", "maintainer", "committer", "reviewer",
                 "author", "predecessor", "assignee", "a-z", "dev",
+                # repo vocabulary that is backticked in prose and is not a person
+                "aggregate", "await", "check", "description", "diff", "execute-test",
+                "foo", "general", "index-append", "main", "null", "pruned", "run",
+                "scope", "tidy", "type", "untriaged", "verify", "refresh-after-index",
                 # the author's OWN login is self-identification, not a model of
                 # someone else — it appears in quoted messages addressed to him and
-                # in tools/ as a functional API coordinate. The rule being enforced
-                # is "no model of a named MAINTAINER in prose".
+                # in tools/ as a functional API coordinate.
                 "serhiy-bzhezytskyy"}
+EXEMPT = {os.path.basename(d) for d in skill_dirs}
+if os.path.isfile("tests/routing-evals.sh"):
+    EXEMPT |= set(re.findall(r'^\s*"([a-z][a-z0-9-]*)\|',
+                             open("tests/routing-evals.sh", encoding="utf-8").read(), re.M))
+# a person being named as the source of words, or as having performed a review act
+ATTRIBUTION = re.compile(r"(said|says|commented|wrote|asked|replied|reviewed|approved"
+                         r"|merged|committer|maintainer|reviewer|verbatim|quote)", re.I)
+
+def looks_like_login(t):
+    if t in EXEMPT or t.lower() in PLACEHOLDERS:
+        return False
+    if re.fullmatch(r"[0-9a-f]{6,40}", t):      # git SHA
+        return False
+    if "." in t or "_" in t or t != t.lower():  # filename / identifier / CamelCase
+        return False
+    return bool(re.fullmatch(r"[a-z][a-z0-9-]{2,38}", t))
+
 handle_hits = []
 for f in glob.glob("*.md") + glob.glob("skills/**/*.md", recursive=True):
     for i, line in enumerate(open(f, encoding="utf-8"), 1):
+        # sigil forms: always a person, always a hit
         for pat in (r"\[~([A-Za-z][\w.-]*)\]", r"(?<![\w/`])@([A-Za-z][\w-]{2,})"):
             for m in re.finditer(pat, line):
                 if m.group(1).lower() in PLACEHOLDERS:
                     continue
                 handle_hits.append("%s:%d %s" % (f, i, m.group(0)))
+        # bare backticked login — only when the line is attributing something to it
+        if ATTRIBUTION.search(line):
+            for m in re.finditer(r"`([A-Za-z][\w.-]{2,})`", line):
+                if looks_like_login(m.group(1)):
+                    handle_hits.append("%s:%d %s" % (f, i, m.group(0)))
 if handle_hits:
     for h in handle_hits:
         bad("maintainer handle in prose: %s (de-identify, per PRINCIPLES)" % h)

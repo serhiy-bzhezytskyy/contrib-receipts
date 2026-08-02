@@ -45,19 +45,35 @@ print(json.dumps({
 # (the #600 comment on 2026-07-21 was missed because #600 wasn't listed here).
 GH_PRS=(
   "apache/solr:4638" "apache/solr:4640" "apache/solr:4643" "apache/solr:4644"
-  "apache/solr:4648"
+  "apache/solr:4648" "apache/solr:4678"
+  # merged, kept listed: a review comment can land after the merge and is otherwise invisible.
+  # #4651 was merged 2026-07-30 01:44 and dsmiley left a review comment on the changelog file at
+  # 01:45 — one minute later. Not in this list at the time, so the sweep never saw it.
+  "apache/solr:4639" "apache/solr:4651"
   "mikemccand/luceneutil:595" "mikemccand/luceneutil:600" "mikemccand/luceneutil:604"
   "jetty/jetty.project:15435" "jetty/jetty.project:15472" "jetty/jetty.project:15473"
-  "apache/lucene:16411"
+  "apache/lucene:16411" "apache/lucene:16434"
+  # 2026-08-02 — the CheckIndex / stored-fields-corruption arc, five PRs in one evening.
+  # #16480 carries three commits and closes the issue I opened for it (#16479, in GH_ISSUES below).
+  "apache/lucene:16474" "apache/lucene:16475" "apache/lucene:16476"
+  "apache/lucene:16478" "apache/lucene:16480"
   # solr-orbit: #59 merged 2026-07-27, kept listed so a post-merge comment still surfaces
   "apache/solr-orbit:58" "apache/solr-orbit:59" "apache/solr-orbit:60"
   # OSB — the upstream siblings of the three solr-orbit fixes
+  # #22534 was authored by me and was missing from this list until the audit below found it
+  "opensearch-project/OpenSearch:22534"
   "opensearch-project/opensearch-benchmark:1096"
   "opensearch-project/opensearch-benchmark:1097"
   "opensearch-project/opensearch-benchmark:1098"
 )
 # --- GitHub issues I'm watching / where I OFFERED a fix (comment-first, PR pending nod) ---
 GH_ISSUES=( "apache/lucene:14399" "apache/lucene:13313" "jetty/jetty.project:15368"
+  # 2026-08-02 — issues I commented on in the CheckIndex arc. Four of them have had no reply in
+  # 10+ years, so "last comment is mine" is the expected state; they are listed because a reply
+  # after a decade is exactly the thing a sweep must not miss.
+  # #16479 is mine, opened for #16480. #12872 is gokaai's stalled PR that #16476 carries forward.
+  "apache/lucene:16479" "apache/lucene:7820" "apache/lucene:9967" "apache/lucene:12872"
+  "apache/lucene:5501" "apache/lucene:10004" "apache/lucene:7823" "apache/lucene:7405"
   "jetty/jetty.project:13569" "opensearch-project/OpenSearch:17140" "opensearch-project/OpenSearch:21537"
   # solr-orbit issues I created (#56 closed by #59; #61 is parked on Jan's "feature creep" call)
   "apache/solr-orbit:55" "apache/solr-orbit:57" "apache/solr-orbit:61"
@@ -65,9 +81,60 @@ GH_ISSUES=( "apache/lucene:14399" "apache/lucene:13313" "jetty/jetty.project:153
   "opensearch-project/opensearch-benchmark:1094"
   "opensearch-project/opensearch-benchmark:1095" )
 # --- ASF JIRA keys ---
-JIRAS=( SOLR-17764 SOLR-17316 SOLR-12239 SOLR-7177 SOLR-18308 SOLR-3284 SOLR-16851 )
+JIRAS=( SOLR-17764 SOLR-17316 SOLR-12239 SOLR-7177 SOLR-18308 SOLR-3284 SOLR-16851
+  SOLR-9355 SOLR-11881 SOLR-17841
+  # merged but still Open, so nobody is watching them: SOLR-17707 needed janhoy to ask dsmiley to
+  # resolve it; SOLR-18313 is in the same state right now (PR #4651 merged, JIRA still Open).
+  SOLR-17707 SOLR-18313
+  # found by the audit below, not by hand: resolved ones are kept because a post-resolution comment
+  # is still a reply owed, and SOLR-18302 is open
+  SOLR-18302 SOLR-17968 SOLR-18289 )
+
+# --- Automatic discovery, so a missing manual entry degrades instead of silently hiding an item ---
+# The manual lists above stay authoritative: they carry the notes, and they cover items where I am
+# not the author (issues opened by others, JIRAs I only commented on). This adds a second pass that
+# asks GitHub and JIRA "what else has my name on it", and reports anything the lists do not mention.
+GH_AUTHOR="${GH_AUTHOR:-serhiy-bzhezytskyy}"
+JIRA_AUTHOR="${JIRA_AUTHOR:-Serhiy Bzhezytskyy}"
 
 hr(){ printf '%.0s─' {1..70}; echo; }
+
+# Anything authored by me that the manual lists do not name. Printed as a gap in the lists, not as a
+# work item: the point is to notice the omission, then add it above with a note.
+audit_lists() {
+  hr; echo "### List audit — mine on the tracker but NOT in the lists above"
+  local listed missing=0
+  listed=$(printf '%s\n' "${GH_PRS[@]}" "${GH_ISSUES[@]}")
+  while IFS=$'\t' read -r repo num title; do
+    [ -z "$num" ] && continue
+    printf '%s\n' "$listed" | grep -qx "$repo:$num" && continue
+    echo "  ⚠️ NOT LISTED  $repo#$num  $title"
+    missing=$((missing+1))
+  done < <(gh search prs --author "$GH_AUTHOR" --state open --limit 60 \
+             --json repository,number,title \
+             --jq '.[] | "\(.repository.nameWithOwner)\t\(.number)\t\(.title[0:60])"' 2>/dev/null)
+
+  while IFS=$'\t' read -r key status summary; do
+    [ -z "$key" ] && continue
+    printf '%s\n' "${JIRAS[@]}" | grep -qx "$key" && continue
+    echo "  ⚠️ NOT LISTED  $key [$status]  $summary"
+    missing=$((missing+1))
+  done < <(python3 - "$JIRA_AUTHOR" <<'PYEOF'
+import json, sys, urllib.parse, urllib.request
+author = sys.argv[1]
+jql = f'project in (SOLR, LUCENE) AND (reporter = "{author}" OR assignee = "{author}" OR comment ~ "{author}") AND updated >= -60d ORDER BY updated DESC'
+url = ('https://issues.apache.org/jira/rest/api/2/search?maxResults=60&fields=summary,status&jql='
+       + urllib.parse.quote(jql))
+try:
+    for i in json.load(urllib.request.urlopen(url, timeout=40)).get('issues', []):
+        print(f"{i['key']}\t{i['fields']['status']['name']}\t{i['fields']['summary'][:60]}")
+except Exception as e:
+    print(f"(jira audit unavailable: {e})", file=sys.stderr)
+PYEOF
+  )
+  [ "$missing" -eq 0 ] && echo "  ✅ no gaps: every open item of mine is in a list above" \
+    || echo "  ↳ $missing item(s) invisible to the sweep until added to GH_PRS / GH_ISSUES / JIRAS"
+}
 
 # --- run counters (fuel for the log line at the end) ---
 CHANNELS=0          # distinct channels this sweep actually queried
@@ -244,6 +311,10 @@ for dom in solr.apache.org lucene.apache.org; do
 done
 rm -f "$MAIL_PY"
 echo "  (to see if a thread got a NEW reply after mine: curl .../api/thread.lua?id=<mid>)"
+
+# Run the list audit before the summary: an item missing from the lists is a gap in this tool, and it
+# has to be visible in the same output as the findings, not in a separate command nobody runs.
+audit_lists
 
 # --- one structured log line per run: how much cross-channel reconstruction this sweep cost ---
 # Columns: iso8601 | channels_queried | items_swept | ball_on_you_github | ball_on_you_cross_tracker

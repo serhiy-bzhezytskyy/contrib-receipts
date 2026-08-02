@@ -21,9 +21,11 @@ signal that earns it; none ships without a receipt that it did.
 | I signed off the way this house requires | [sign-off-the-house-way](skills/sign-off-the-house-way/SKILL.md) |
 | I shaped the PR like what actually merges here | [match-the-house-shape](skills/match-the-house-shape/SKILL.md) |
 | I didn't grab owned work | [offer-dont-grab](skills/offer-dont-grab/SKILL.md) |
+| I measured the neighbour before widening a fix to it | [measure-before-you-widen](skills/measure-before-you-widen/SKILL.md) |
 | I moved faster by discussing first | [discuss-in-issue-first](skills/discuss-in-issue-first/SKILL.md) |
 | Each PR does one thing, and the cluster is navigable | [one-fix-one-pr-then-coordinate](skills/one-fix-one-pr-then-coordinate/SKILL.md) |
 | The words are mine, not an LLM's | [write-in-your-own-voice](skills/write-in-your-own-voice/SKILL.md) |
+| I answered what you asked, at the size you asked it | [answer-only-what-was-asked](skills/answer-only-what-was-asked/SKILL.md) |
 | My comments explain the code, not the change | [comments-about-code-not-change](skills/comments-about-code-not-change/SKILL.md) |
 | I didn't rewrite reviewers' anchors | [no-force-push-a-reviewed-pr](skills/no-force-push-a-reviewed-pr/SKILL.md) |
 | I verified before I spoke | [verify-before-a-committer-comment](skills/verify-before-a-committer-comment/SKILL.md) |

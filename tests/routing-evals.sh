@@ -95,6 +95,20 @@ CASES=(
   # Prompt avoids "noise floor", "RSD", "variance" and "baseline".
   "is-the-number-real|state-the-noise-floor|I benchmarked the new version against the old one and it came out 13% slower. About to write that up for the mailing list. Anything I should do first?"
 
+  # Size-of-reply discipline. Competes hard: nudge-with-new-information owns "does this
+  # message carry a fact" for an UNPROMPTED message, write-in-your-own-voice owns the
+  # register of prose that should exist — this one is whether the prose should exist at
+  # all, on a message you were invited to send. Prompt avoids "only", "asked",
+  # "verification" and any form of "answer". 3/3 on arrival, with stalled-pr and
+  # pr-body-voice both still 2/2 alongside it — no collision despite the overlap.
+  "just-a-rebase|answer-only-what-was-asked|A reviewer who already approved my PR left a one-line note saying it needs a rebase. I did it and reran everything locally. What should I put in the reply?"
+
+  # Widening a landed fix to a neighbour. Competes with state-the-noise-floor (both
+  # refuse an unmeasured claim) and one-fix-one-pr-then-coordinate (how many PRs).
+  # Prompt avoids "measure", "widen", "same vulnerability" and "consistency".
+  # 3/3 on arrival; is-the-number-real held 2/2 alongside it.
+  "extend-to-neighbour|measure-before-you-widen|My fix landed for one file format, and a second format calls the exact same decompression routine, so it looks like it has the identical flaw. Should I queue up a third change for it?"
+
   # --- the eight original etiquette skills. Added later than the rest: every skill
   # shipped during the 07-26/27 arc got a case on arrival, while these eight had gone
   # unmeasured the longest — the inverse of what coverage should look like. All eight

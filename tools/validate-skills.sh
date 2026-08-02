@@ -197,7 +197,12 @@ else:
 # @handles in source"), not references to a person — so they are not hits.
 PLACEHOLDERS = {"handle", "handles", "handle)", "name", "names", "someone", "me",
                 "you", "user", "username", "maintainer", "committer", "reviewer",
-                "author", "predecessor", "assignee", "a-z", "dev"}
+                "author", "predecessor", "assignee", "a-z", "dev",
+                # the author's OWN login is self-identification, not a model of
+                # someone else — it appears in quoted messages addressed to him and
+                # in tools/ as a functional API coordinate. The rule being enforced
+                # is "no model of a named MAINTAINER in prose".
+                "serhiy-bzhezytskyy"}
 handle_hits = []
 for f in glob.glob("*.md") + glob.glob("skills/**/*.md", recursive=True):
     for i, line in enumerate(open(f, encoding="utf-8"), 1):
